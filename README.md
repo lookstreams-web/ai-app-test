@@ -6,7 +6,7 @@ El motor evalúa el contenido y la evidencia disponible. No decide si una person
 
 ## Alcance de esta rama
 
-Esta rama implementa solamente el backend de Eduardo:
+Esta rama integra el backend de Eduardo con la entrada y transcripción de Jorge:
 
 - Contratos Zod compartidos para la entrada y las tres salidas.
 - Motor de análisis multiagente con orquestación determinista.
@@ -14,13 +14,17 @@ Esta rama implementa solamente el backend de Eduardo:
 - Auditoría de procedencia, arbitraje de claims y scoring en código.
 - Worker de Supabase con leases, reintentos y persistencia atómica.
 - Health checks y configuración para Railway.
+- Endpoint Next.js que recibe una URL de YouTube, obtiene el transcript y encola el análisis.
+- Endpoint de polling y preview de transcript, con rate limit por IP hasheada.
 
-No incluye la UI de Joel, el endpoint público de Next.js ni la extracción del transcript de YouTube de Jorge.
+No incluye todavía la UI final de Joel. Las páginas Next.js incluidas son placeholders de integración.
 
 ## Estructura
 
 ```text
+app                            Entrada HTTP y páginas placeholder
 apps/analysis-worker           Worker, cola, logs y health checks
+lib/youtube                    Extracción y adaptación del transcript de YouTube
 packages/analysis-contracts   Schemas Zod compartidos
 packages/analysis-engine      Agentes, evidencia, scoring y reportes
 supabase/migrations           Tablas y funciones SQL atómicas
@@ -30,7 +34,9 @@ docs                          PRD, metodología, contratos y fixtures
 ## Flujo
 
 ```text
-Joel inserta AnalysisJobInput en Supabase
+POST /api/analyses recibe una URL de YouTube
+  → Jorge obtiene y segmenta el transcript
+  → el adaptador valida AnalysisJobInput y lo encola en Supabase
   → worker reserva el trabajo con SKIP LOCKED
   → divide el transcript conservando timestamps
   → extrae claims y analiza el discurso
@@ -54,6 +60,7 @@ cp .env.example .env
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm dev              # web en http://localhost:3000
 pnpm dev:worker
 ```
 
@@ -63,7 +70,7 @@ En PowerShell, reemplaza `cp` por:
 Copy-Item .env.example .env
 ```
 
-El worker requiere `OPENAI_API_KEY`, `SUPABASE_URL` y una clave de servidor: `SUPABASE_SECRET_KEY` (recomendada) o `SUPABASE_SERVICE_ROLE_KEY` (legacy). Nunca expongas estas claves al navegador.
+El worker y la API requieren `OPENAI_API_KEY`, `SUPABASE_URL` y una clave de servidor: `SUPABASE_SECRET_KEY` (recomendada) o `SUPABASE_SERVICE_ROLE_KEY` (legacy). Nunca expongas estas claves al navegador.
 
 ## Supabase
 
@@ -73,7 +80,17 @@ Aplica la migración antes de iniciar el worker:
 supabase db push
 ```
 
-Joel debe validar `analysisJobInputSchema` e insertar una fila en `analyses` con `status = 'queued'`. El worker no ofrece un endpoint para crear análisis.
+La API valida `analysisJobInputSchema` e inserta una fila en `analyses` con `status = 'queued'`. El worker no ofrece un endpoint público para crear análisis.
+
+Prueba rápida:
+
+```bash
+curl -X POST http://localhost:3000/api/analyses \
+  -H "Content-Type: application/json" \
+  -d '{"sourceType":"youtube","url":"https://www.youtube.com/watch?v=VIDEO_ID"}'
+```
+
+Consulta el progreso con `GET /api/analyses/{id}`.
 
 La cola usa:
 
