@@ -92,6 +92,15 @@ curl -X POST http://localhost:3000/api/analyses \
 
 Consulta el progreso con `GET /api/analyses/{id}`.
 
+Para una prueba local completa sin depender todavía del rate limit de la API web, inicia el worker y ejecuta en otra terminal:
+
+```bash
+pnpm dev:worker
+pnpm test:youtube -- "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+El comando muestra las etapas, el progreso y el diagnóstico público final. Encola directamente en el Supabase configurado en `.env`; úsalo solo para desarrollo.
+
 La cola usa:
 
 - Lease de 120 segundos, renovado cada 30 segundos.

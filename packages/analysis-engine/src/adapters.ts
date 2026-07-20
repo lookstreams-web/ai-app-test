@@ -52,7 +52,13 @@ function publicLevel(score: number | null, coverage: number): PublicDiagnosis["d
   return "muy alto";
 }
 
-const evidenceRef = (id: string) => `fuente-${id.replace(/^evidence-/, "")}`;
+const evidenceRef = (id: string) => id;
+
+function simplifyPublicSummary(summary: string): string {
+  return summary
+    .replace(/\bafirmaci[oó]n\s+(?:c\d+|claim[-_ ]?\d+)\b/gi, "afirmación principal")
+    .replace(/\b(?:c\d+|claim[-_ ]?\d+)\b/gi, "la afirmación revisada");
+}
 
 export function buildPublicDiagnosis(parts: ReportParts): PublicDiagnosis {
   const distribution = claimDistribution(parts.claims);
@@ -76,6 +82,27 @@ export function buildPublicDiagnosis(parts: ReportParts): PublicDiagnosis {
     .slice(0, 5);
   const mainSourceIds = new Set(mainSources.map((source) => source.id));
   const sensitive = parts.claims.some((claim) => claim.sensitiveDomain !== "none");
+  const commercial = parts.discourse.marketingPromotionPct >= 15;
+  const contextItems = (items: Array<{ text: string; evidenceIds: string[] }>) => items
+    .map((item) => ({
+      texto: item.text,
+      fuentes: item.evidenceIds.filter((id) => evidenceById.has(id)).map(evidenceRef)
+    }))
+    .filter((item) => item.fuentes.length > 0);
+  const immediateAdvice = commercial
+    ? "Antes de pagar, comprueba la promesa principal, el precio total y las condiciones."
+    : "Toma este video como punto de partida: separa los hechos de las opiniones y revisa la fuente principal.";
+  const actions = commercial
+    ? [
+        "Pide la fuente original de la cifra.",
+        "Lee las condiciones y la política de devolución.",
+        sensitive ? "Consulta a un profesional calificado." : "Compara con una fuente independiente."
+      ]
+    : [
+        "Distingue qué partes son hechos, opiniones o experiencias personales.",
+        "Abre la fuente original y comprueba si dice lo mismo.",
+        sensitive ? "Consulta a un profesional calificado." : "Busca una explicación independiente."
+      ];
 
   return publicDiagnosisSchema.parse({
     diagnostico_final: {
@@ -96,11 +123,13 @@ export function buildPublicDiagnosis(parts: ReportParts): PublicDiagnosis {
         explicacion: "Este porcentaje marca fragmentos con presión o persuasión. No prueba intención de manipular."
       },
       evidencia_revisada_pct: coveragePct,
-      estado_de_la_revision: parts.finalStatus === "needs_review" ? "requiere_revision_humana" : parts.finalStatus === "partial" ? "parcial" : "completa",
-      consejo_inmediato: "No decidas solo con este video. Comprueba la promesa principal y revisa las condiciones antes de pagar."
+      estado_de_la_revision: parts.finalStatus === "needs_review"
+        ? "requiere_revision_humana"
+        : parts.finalStatus === "partial" || coveragePct < 70 ? "parcial" : "completa",
+      consejo_inmediato: immediateAdvice
     },
     resumen: {
-      en_pocas_palabras: parts.synthesis.summary,
+      en_pocas_palabras: simplifyPublicSummary(parts.synthesis.summary),
       lo_que_aporta: parts.synthesis.usefulPoints.slice(0, 3).map((texto) => ({ texto, fuentes: mainSources.slice(0, 1).map((source) => evidenceRef(source.id)) })),
       ten_cuidado_con: parts.synthesis.warnings.slice(0, 3).map((texto) => ({ texto, fuentes: mainSources.slice(0, 2).map((source) => evidenceRef(source.id)) })),
       no_pudimos_comprobar: unresolved.slice(0, 3).map((claim) => ({ texto: claim.text, fuentes: claim.approvedEvidenceIds.map(evidenceRef) }))
@@ -127,26 +156,32 @@ export function buildPublicDiagnosis(parts: ReportParts): PublicDiagnosis {
     }),
     contexto_publico: {
       que_revisamos: parts.context.reviewedPlaces,
-      lo_positivo_comprobado: parts.context.positiveCorroborated.map((item) => ({ texto: item.text, fuentes: item.evidenceIds.map(evidenceRef) })),
-      alertas_comprobadas: parts.context.adverseCorroborated.map((item) => ({ texto: item.text, fuentes: item.evidenceIds.map(evidenceRef) })),
-      comentarios_que_solo_son_opiniones: parts.context.opinionSignals.map((item) => ({ texto: item.text, fuentes: item.evidenceIds.map(evidenceRef) })),
+      lo_positivo_comprobado: contextItems(parts.context.positiveCorroborated),
+      alertas_comprobadas: contextItems(parts.context.adverseCorroborated),
+      comentarios_que_solo_son_opiniones: contextItems(parts.context.opinionSignals),
       explicacion: "Los comentarios visibles no representan a todos los clientes y no prueban por sí solos que algo ocurrió."
     },
     consejo: {
-      recomendacion_principal: "No tomes una decisión solo con este video.",
+      recomendacion_principal: commercial
+        ? "No compres ni te registres basándote solo en este video."
+        : "Usa el video como una idea inicial, no como la única fuente para decidir.",
       por_que: contradicted.length > 0
         ? "Al menos una promesa importante no coincide con la evidencia consultada."
-        : "Conviene comparar la promesa principal con una fuente independiente.",
-      antes_de_decidir: [
-        "Pide la fuente original de la cifra.",
-        "Lee las condiciones y la política de devolución.",
-        sensitive ? "Consulta a un profesional calificado." : "Compara con una fuente independiente."
-      ],
-      preguntas_que_puedes_hacer: [
-        "¿Qué datos completos respaldan esta promesa?",
-        "¿Cómo se midió el resultado y durante cuánto tiempo?",
-        "¿Qué condiciones o casos no se mencionaron?"
-      ]
+        : commercial
+          ? "Conviene comparar la promesa principal con una fuente independiente."
+          : "El video puede mezclar hechos, opiniones y experiencias personales.",
+      antes_de_decidir: actions,
+      preguntas_que_puedes_hacer: commercial
+        ? [
+            "¿Qué datos completos respaldan esta promesa?",
+            "¿Cómo se midió el resultado y durante cuánto tiempo?",
+            "¿Qué condiciones o casos no se mencionaron?"
+          ]
+        : [
+            "¿Qué parte es un hecho y qué parte es una opinión?",
+            "¿La fuente original dice realmente lo mismo?",
+            "¿Qué contexto importante podría faltar?"
+          ]
     },
     fuentes_principales: mainSources.map((source) => ({
       id: evidenceRef(source.id),

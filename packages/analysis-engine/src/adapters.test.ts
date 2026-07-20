@@ -43,4 +43,45 @@ describe("adaptador público determinista", () => {
     expect(report.contrastes).toHaveLength(3);
     expect(report.fuentes_principales).toHaveLength(5);
   });
+
+  it("da consejos no comerciales, oculta IDs técnicos y conserva referencias auditables", () => {
+    const claims = [scored("c1", "mostlySupported", 1)];
+    const score = calculateGlobalRisk([
+      { category: "factualRisk", score: 25, coverage: 0.4 },
+      { category: "manipulationPersuasionRisk", score: 20, coverage: 0.4 },
+      { category: "crossVideoPatternRisk", score: null, coverage: 0 },
+      { category: "transparencyRisk", score: null, coverage: 0 },
+      { category: "corroboratedPublicRisk", score: null, coverage: 0 },
+      { category: "audienceEvidenceRisk", score: null, coverage: 0 }
+    ]);
+    const parts: ReportParts = {
+      runId: "run-2",
+      input,
+      score,
+      claims,
+      evidence: [source(1)],
+      discourse: { summary: "Resumen", marketingPromotionPct: 1, candidateValuePct: 80, urgencyExposurePct: 2, persuasionExposurePct: 10, persuasionRiskScore: 15, coverage: 1, findings: [] },
+      context: {
+        identity: { status: "confirmed", confidence: 1, attributionSignals: [] },
+        reviewedPlaces: ["web"],
+        positiveCorroborated: [{ text: "Dato sin fuente auditada", evidenceIds: ["missing-source"] }],
+        adverseCorroborated: [], opinionSignals: [], crossVideoRiskScore: null, crossVideoCoverage: 0,
+        transparencyRiskScore: null, transparencyCoverage: 0, publicRiskScore: null, publicRiskCoverage: 0,
+        audienceEvidenceRiskScore: null, audienceEvidenceCoverage: 0, evidence: [], limitations: []
+      },
+      synthesis: { headline: "Resumen", summary: "La afirmación c8 está parcialmente respaldada.", usefulPoints: ["Aporta una idea."], warnings: [] },
+      finalStatus: "completed",
+      modelGeneral: "gpt-5.6-terra",
+      modelJudge: "gpt-5.6-sol"
+    };
+
+    const report = buildPublicDiagnosis(parts);
+    const advice = JSON.stringify(report.consejo);
+    expect(advice).not.toContain("pagar");
+    expect(advice).not.toContain("devolución");
+    expect(report.resumen.en_pocas_palabras).not.toContain("c8");
+    expect(report.diagnostico_final.estado_de_la_revision).toBe("parcial");
+    expect(report.fuentes_principales[0]?.id).toBe("evidence-c1");
+    expect(report.contexto_publico.lo_positivo_comprobado).toEqual([]);
+  });
 });

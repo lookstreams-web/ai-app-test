@@ -6,7 +6,7 @@ import {
   discourseAnalysisSchema,
   publicContextResearchSchema
 } from "@motor/analysis-contracts";
-import type { AnalysisJobInput, ClaimJudgment } from "@motor/analysis-contracts";
+import type { AnalysisJobInput, ClaimJudgment, Evidence } from "@motor/analysis-contracts";
 import { buildInternalReport, buildLegacyV1, buildPublicDiagnosis } from "./adapters.js";
 import { applyProvenanceAudit, deduplicateEvidence, enforceAdjudicationThresholds, filterAttributableContext } from "./provenance.js";
 import { calculateClaimWeight, calculateFactualRisk, calculateGlobalRisk } from "./scoring.js";
@@ -16,6 +16,7 @@ import type {
   AtomicClaim,
   ClaimPlan,
   DiscourseAnalysis,
+  PublicContextResearch,
   ResearchBundle,
   ScoredClaim
 } from "./types.js";
@@ -139,6 +140,35 @@ export function bindResearchToClaim(claim: AtomicClaim, research: ResearchBundle
   };
 }
 
+export function retainAuditedContextEvidence(
+  context: PublicContextResearch,
+  auditedEvidence: Evidence[]
+): PublicContextResearch {
+  const originalContextIds = new Set(context.evidence.map((item) => item.id));
+  const evidence = auditedEvidence.filter((item) => originalContextIds.has(item.id));
+  const allowedIds = new Set(evidence.map((item) => item.id));
+  const retainItems = (items: Array<{ text: string; evidenceIds: string[] }>) => items
+    .map((item) => ({ ...item, evidenceIds: item.evidenceIds.filter((id) => allowedIds.has(id)) }))
+    .filter((item) => item.evidenceIds.length > 0);
+  const hasAuditedContext = evidence.length > 0;
+
+  return publicContextResearchSchema.parse({
+    ...context,
+    positiveCorroborated: retainItems(context.positiveCorroborated),
+    adverseCorroborated: retainItems(context.adverseCorroborated),
+    opinionSignals: retainItems(context.opinionSignals),
+    evidence,
+    crossVideoRiskScore: hasAuditedContext ? context.crossVideoRiskScore : null,
+    crossVideoCoverage: hasAuditedContext ? context.crossVideoCoverage : 0,
+    transparencyRiskScore: hasAuditedContext ? context.transparencyRiskScore : null,
+    transparencyCoverage: hasAuditedContext ? context.transparencyCoverage : 0,
+    publicRiskScore: hasAuditedContext ? context.publicRiskScore : null,
+    publicRiskCoverage: hasAuditedContext ? context.publicRiskCoverage : 0,
+    audienceEvidenceRiskScore: hasAuditedContext ? context.audienceEvidenceRiskScore : null,
+    audienceEvidenceCoverage: hasAuditedContext ? context.audienceEvidenceCoverage : 0
+  });
+}
+
 export class DeterministicAnalysisEngine {
   constructor(private readonly gateway: AgentGateway, private readonly options: AnalysisEngineOptions) {}
 
@@ -191,6 +221,7 @@ export class DeterministicAnalysisEngine {
       }
     }
     const allEvidence = deduplicateEvidence(auditedEvidence);
+    const auditedContext = retainAuditedContextEvidence(context, allEvidence);
     const evidenceByClaim = new Map(selected.map(({ claim }) => [claim.id, allEvidence.filter((item) => item.claimId === claim.id)]));
 
     await progress("adjudicating", 60);
@@ -221,7 +252,7 @@ export class DeterministicAnalysisEngine {
 
     await progress("scoring", 78);
     const factual = calculateFactualRisk(claims);
-    const attributable = filterAttributableContext(context);
+    const attributable = filterAttributableContext(auditedContext);
     const globalScore = calculateGlobalRisk([
       { category: "factualRisk", score: factual.score, coverage: factual.coverage, confidence: claims.length ? claims.reduce((sum, claim) => sum + claim.confidence, 0) / claims.length : 0, coverageNumerator: factual.resolvedWeight, coverageDenominator: factual.eligibleWeight || 1, coverageMethod: "resolved_claim_weight_over_all_eligible_claim_weight", sourceRefs: claims.flatMap((claim) => claim.approvedEvidenceIds) },
       { category: "manipulationPersuasionRisk", score: discourse.coverage ? discourse.persuasionRiskScore : null, coverage: discourse.coverage, confidence: discourse.coverage, coverageMethod: "classified_transcript_fraction", findingRefs: discourse.findings.map((finding) => finding.id) },
@@ -260,7 +291,7 @@ export class DeterministicAnalysisEngine {
       claims,
       evidence: allEvidence,
       discourse,
-      context,
+      context: auditedContext,
       synthesis,
       finalStatus,
       modelGeneral: this.options.generalModel,

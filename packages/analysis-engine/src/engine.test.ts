@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnalysisJobInput } from "@motor/analysis-contracts";
-import { bindResearchToClaim, DeterministicAnalysisEngine, splitAnalysisInput } from "./engine.js";
+import { bindResearchToClaim, DeterministicAnalysisEngine, retainAuditedContextEvidence, splitAnalysisInput } from "./engine.js";
 import type { AgentGateway, AtomicClaim } from "./types.js";
 
 const input: AnalysisJobInput = {
@@ -26,6 +26,38 @@ function gateway(): AgentGateway {
 }
 
 describe("orquestación", () => {
+  it("elimina contexto público cuyas fuentes no superaron la auditoría", () => {
+    const context = {
+      identity: { status: "confirmed" as const, confidence: 1, attributionSignals: ["canal oficial"] },
+      reviewedPlaces: ["YouTube", "web"],
+      positiveCorroborated: [{ text: "Presencia confirmada", evidenceIds: ["context-1"] }],
+      adverseCorroborated: [],
+      opinionSignals: [],
+      crossVideoRiskScore: 40,
+      crossVideoCoverage: 1,
+      transparencyRiskScore: 30,
+      transparencyCoverage: 1,
+      publicRiskScore: 20,
+      publicRiskCoverage: 1,
+      audienceEvidenceRiskScore: null,
+      audienceEvidenceCoverage: 0,
+      evidence: [{
+        id: "context-1", claimId: null, url: "https://example.com/context", title: "Contexto",
+        publisher: null, excerpt: "Dato", stance: "context" as const, sourceType: "publicProfile" as const,
+        publishedAt: null, retrievedAt: "2026-07-20T00:00:00Z", directness: 1,
+        temporalFit: 1, geographicFit: 1, independence: 1, proceduralStatus: "notApplicable" as const,
+        originClusterId: "context-origin", contentHash: null
+      }],
+      limitations: []
+    };
+
+    const sanitized = retainAuditedContextEvidence(context, []);
+    expect(sanitized.evidence).toEqual([]);
+    expect(sanitized.positiveCorroborated).toEqual([]);
+    expect(sanitized.publicRiskScore).toBeNull();
+    expect(sanitized.publicRiskCoverage).toBe(0);
+  });
+
   it("asocia la evidencia al claim real aunque el agente devuelva otro ID", () => {
     const claim: AtomicClaim = {
       id: "claim-real", text: "Dato", quote: "Dato", startSeconds: 1, endSeconds: 2,
