@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "schemaVersion": "1",
+    "sourceType": "text",
+    "sourceUrl": null,
+    "title": "Fixture de verificación para UI",
+    "language": "es",
+    "durationSeconds": null,
+    "model": "gpt-5.6",
+    "analyzedAt": "2026-07-19T20:00:00Z"
+  },
+  "analysis": {
+    "hypeIndex": 48,
+    "verdict": "Afirmaciones mixtas; revisar evidencia antes de actuar",
+    "breakdown": {
+      "emotionalAppeal": 12,
+      "fallacy": 10,
+      "opinion": 18,
+      "sourcedClaim": 20,
+      "unsourcedClaim": 25,
+      "neutral": 15
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "category": "sourcedClaim",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "La tasa de CETES a 28 días cerró junio en 8.1% según datos de Banxico.",
+        "explanation": "Afirmación concreta que cita una fuente oficial.",
+        "severity": null,
+        "timestampSeconds": null,
+        "verification": {
+          "status": "verified",
+          "note": "La fuente oficial consultada publica una tasa consistente con la afirmación para el periodo indicado.",
+          "sourceUrl": "https://www.banxico.org.mx/"
+        }
+      },
+      {
+        "id": "f2",
+        "category": "unsourcedClaim",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "El S&P 500 ha rendido 30% anual desde 1957.",
+        "explanation": "Afirmación histórica cuantificable sin una fuente citada.",
+        "severity": "high",
+        "timestampSeconds": null,
+        "verification": {
+          "status": "contradicted",
+          "note": "La evidencia histórica disponible no respalda ese rendimiento anual promedio de largo plazo.",
+          "sourceUrl": "https://www.spglobal.com/spdji/en/indices/equity/sp-500/"
+        }
+      },
+      {
+        "id": "f3",
+        "category": "unsourcedClaim",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "El 90% de mis alumnos recupera la inversión en tres meses.",
+        "explanation": "Estadística de resultados sin metodología, muestra ni fuente independiente.",
+        "severity": "high",
+        "timestampSeconds": null,
+        "verification": {
+          "status": "noEvidence",
+          "note": "No se encontró evidencia independiente ni una metodología verificable que respalde esta cifra.",
+          "sourceUrl": null
+        }
+      },
+      {
+        "id": "f4",
+        "category": "emotionalAppeal",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "Tu yo del futuro te va a agradecer haber empezado hoy.",
+        "explanation": "Mensaje motivacional que apela a la aspiración personal.",
+        "severity": "low",
+        "timestampSeconds": null,
+        "verification": null
+      },
+      {
+        "id": "f5",
+        "category": "opinion",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "Para mí, invertir de forma diversificada es la mejor estrategia.",
+        "explanation": "Juicio personal presentado explícitamente como opinión.",
+        "severity": null,
+        "timestampSeconds": null,
+        "verification": null
+      }
+    ],
+    "executiveSummary": {
+      "hasSubstance": "El fixture combina una afirmación con respaldo, una contradicha y una sin evidencia suficiente.",
+      "mainConcerns": "Las cifras de rendimiento y resultados requieren contrastarse con fuentes independientes.",
+      "recommendation": "Usar este archivo para probar los estados visuales de verificación en la UI."
+    }
+  }
+}

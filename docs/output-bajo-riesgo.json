@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "schemaVersion": "1",
+    "sourceType": "youtube",
+    "sourceUrl": "https://youtube.com/watch?v=xyz789",
+    "title": "CETES vs fondos indexados: ¿dónde poner tu dinero en 2026?",
+    "language": "es",
+    "durationSeconds": 843,
+    "model": "gpt-5.6",
+    "analyzedAt": "2026-07-19T19:10:00Z"
+  },
+  "analysis": {
+    "hypeIndex": 14,
+    "verdict": "Datos con fuente, tono mesurado",
+    "breakdown": {
+      "emotionalAppeal": 6,
+      "fallacy": 0,
+      "opinion": 12,
+      "sourcedClaim": 47,
+      "unsourcedClaim": 5,
+      "neutral": 30
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "category": "sourcedClaim",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "La tasa de CETES a 28 días cerró junio en 8.1% según datos de Banxico",
+        "explanation": "Cifra concreta con fuente oficial citada, fácilmente verificable en el sitio de Banxico.",
+        "severity": null,
+        "timestampSeconds": 130,
+        "verification": null
+      },
+      {
+        "id": "f2",
+        "category": "sourcedClaim",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "El S&P 500 ha rendido en promedio cerca de 10% anual desde 1957, de acuerdo con datos de Standard & Poor's",
+        "explanation": "Afirmación histórica con fuente citada; el promedio de largo plazo es un dato público y verificable.",
+        "severity": null,
+        "timestampSeconds": 312,
+        "verification": null
+      },
+      {
+        "id": "f3",
+        "category": "opinion",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "En mi opinión, para un principiante es más sensato empezar con CETES que con acciones individuales",
+        "explanation": "Juicio personal presentado explícitamente como opinión, con razonamiento previo sobre riesgo; no pretende ser un dato.",
+        "severity": null,
+        "timestampSeconds": 455,
+        "verification": null
+      },
+      {
+        "id": "f4",
+        "category": "unsourcedClaim",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "La mayoría de la gente que empieza en trading pierde dinero en su primer año",
+        "explanation": "Afirmación plausible y consistente con estudios conocidos, pero mencionada sin citar fuente ni cifra específica.",
+        "severity": "low",
+        "timestampSeconds": 590,
+        "verification": null
+      },
+      {
+        "id": "f5",
+        "category": "emotionalAppeal",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "Tu yo del futuro te va a agradecer haber empezado hoy, aunque sea con poco",
+        "explanation": "Apelación emocional leve para motivar el hábito de ahorro; no presiona a comprar nada ni distorsiona los datos presentados.",
+        "severity": "low",
+        "timestampSeconds": 801,
+        "verification": null
+      }
+    ],
+    "executiveSummary": {
+      "hasSubstance": "La mayor parte del contenido son datos con fuente citada (Banxico, Standard & Poor's) y comparaciones concretas de rendimiento y riesgo entre instrumentos.",
+      "mainConcerns": "Solo hay observaciones menores: una estadística sobre trading sin fuente y un cierre motivacional leve. No se detectaron falacias ni presión de venta.",
+      "recommendation": "Contenido razonable como punto de partida. Verifica las tasas vigentes antes de decidir, porque cambian mes a mes."
+    }
+  }
+}

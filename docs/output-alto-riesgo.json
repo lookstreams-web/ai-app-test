@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "schemaVersion": "1",
+    "sourceType": "youtube",
+    "sourceUrl": "https://youtube.com/watch?v=abc123",
+    "title": "Cómo logré libertad financiera a los 25",
+    "language": "es",
+    "durationSeconds": 754,
+    "model": "gpt-5.6",
+    "analyzedAt": "2026-07-19T18:30:00Z"
+  },
+  "analysis": {
+    "hypeIndex": 72,
+    "verdict": "Mucha emoción, pocos datos",
+    "breakdown": {
+      "emotionalAppeal": 35,
+      "fallacy": 12,
+      "opinion": 10,
+      "sourcedClaim": 6,
+      "unsourcedClaim": 17,
+      "neutral": 20
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "category": "fallacy",
+        "fallacyType": "falseDichotomy",
+        "fallacyLabel": "Falsa dicotomía",
+        "quote": "O sigues en tu trabajo esclavo toda la vida, o tomas acción hoy y alcanzas la libertad financiera",
+        "explanation": "Presenta solo dos opciones extremas cuando existen muchas alternativas intermedias (mejorar en tu empleo, emprender gradualmente, invertir sin dejar el trabajo).",
+        "severity": "high",
+        "timestampSeconds": 95,
+        "verification": null
+      },
+      {
+        "id": "f2",
+        "category": "fallacy",
+        "fallacyType": "artificialScarcity",
+        "fallacyLabel": "Escasez artificial",
+        "quote": "Solo quedan 3 cupos y cierro inscripciones hoy a medianoche",
+        "explanation": "Presión de urgencia sin justificación verificable, técnica clásica para impedir una decisión reflexiva.",
+        "severity": "high",
+        "timestampSeconds": 610,
+        "verification": null
+      },
+      {
+        "id": "f3",
+        "category": "emotionalAppeal",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "Imagina cómo cuidarías a tu mamá si tuvieras libertad financiera",
+        "explanation": "Apela al vínculo familiar para generar deseo del producto, sin conexión lógica con la efectividad del método.",
+        "severity": "medium",
+        "timestampSeconds": 142,
+        "verification": null
+      },
+      {
+        "id": "f4",
+        "category": "sourcedClaim",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "El e-commerce en Latinoamérica creció 12% en 2024 según Statista",
+        "explanation": "Afirmación con fuente citada, verificable.",
+        "severity": null,
+        "timestampSeconds": 230,
+        "verification": null
+      },
+      {
+        "id": "f5",
+        "category": "unsourcedClaim",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "El 90% de mis alumnos recuperan la inversión en 3 meses",
+        "explanation": "Estadística sin fuente ni metodología; imposible de verificar de forma independiente.",
+        "severity": "high",
+        "timestampSeconds": 488,
+        "verification": null
+      },
+      {
+        "id": "f6",
+        "category": "opinion",
+        "fallacyType": null,
+        "fallacyLabel": null,
+        "quote": "Para mí, el e-commerce es la mejor oportunidad de esta década",
+        "explanation": "Juicio personal legítimo, presentado explícitamente como tal; no constituye dato ni manipulación.",
+        "severity": null,
+        "timestampSeconds": 205,
+        "verification": null
+      }
+    ],
+    "executiveSummary": {
+      "hasSubstance": "El único dato con fuente es el crecimiento del e-commerce (12%, Statista). El resto son promesas sin evidencia.",
+      "mainConcerns": "El video usa presión de urgencia y apelaciones familiares para vender un curso. Las cifras de resultados no tienen respaldo.",
+      "recommendation": "No tomes decisiones de compra basándote solo en este contenido. Pide datos verificables de resultados antes de invertir."
+    }
+  }
+}
