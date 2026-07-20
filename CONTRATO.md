@@ -106,6 +106,46 @@ Estas reglas deben comprobarse en cada edición del contrato, schema o backend:
 6. `hypeIndex` está entre 0 y 100; un valor mayor significa más humo, presión o falta de sustento.
 7. Todos los findings contienen todos sus campos. Cuando un campo no aplica, se usa `null`; no se omite.
 
+## Cálculo del `hypeIndex`
+
+El cálculo es híbrido: el LLM estima el `hypeIndex` de forma holística para capturar contexto y matices, mientras que el backend lo acota para garantizar consistencia entre corridas y coherencia con `breakdown`.
+
+### Rúbrica para el prompt
+
+El prompt debe pedir un `hypeIndex` coherente con el `breakdown` y las severidades, usando estas bandas como guía:
+
+| Rango | Interpretación |
+| --- | --- |
+| 0–20 | Contenido riguroso: datos con fuente, opiniones marcadas como tales y sin presión de venta. |
+| 21–40 | Contenido mayormente sólido, con algunas afirmaciones sin fuente o apelaciones emocionales leves. |
+| 41–60 | Señales claras de manipulación: la emoción y las promesas pesan más que los datos. |
+| 61–80 | Señales de manipulación dominantes: falacias, presión de urgencia o cifras sin respaldo. |
+| 81–100 | Señales muy altas de manipulación o venta agresiva, con poca sustancia verificable. |
+
+### Guardarraíl del backend
+
+El backend calcula una referencia a partir de un `breakdown` ya normalizado a 100:
+
+```text
+formula = 0.8 × emotionalAppeal
+        + 1.0 × fallacy
+        + 0.9 × unsourcedClaim
+        + 0.1 × opinion
+        + bono por severidad
+
+bono por severidad = +5 por cada finding "high"
+                    +2 por cada finding "medium"
+                    máximo total: +15
+```
+
+Los findings con severidad `low` no reciben bono. El bono solo considera los 8 a 12 findings relevantes incluidos en la respuesta, por lo que es una señal complementaria y no una medición exhaustiva.
+
+Si `|hypeIndex_llm − formula| > 15`, el backend ajusta el valor al extremo más cercano de `formula ± 15`. Después, acota siempre el resultado a `[0, 100]` y lo redondea al entero más próximo. La fórmula puede superar 100 en casos extremos; el valor final nunca lo hace.
+
+El backend debe conservar o poder recalcular `formula` para diagnosticar discrepancias, aunque ese valor no forma parte de la respuesta pública v1.
+
+Como control de regresión, los fixtures actuales quedan dentro del guardarraíl: el caso de alto riesgo produce una fórmula de aproximadamente 71 y un índice de 72; el caso de bajo riesgo produce una fórmula de aproximadamente 11 y un índice de 14.
+
 ## Categorías y precedencia
 
 Ante ambigüedad, se clasifica usando la primera categoría aplicable:
