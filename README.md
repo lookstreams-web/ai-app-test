@@ -111,13 +111,33 @@ La cola usa:
 
 ## Railway
 
-El archivo `railway.json` compila y arranca `@motor/analysis-worker`.
+Despliega dos servicios desde este mismo repositorio y la rama `main`:
 
-- Inicio: `pnpm --filter @motor/analysis-worker start`
-- Salud: `GET /health`
-- Preparación: `GET /ready`
+| Servicio | Archivo de configuración | Inicio | Salud | Dominio público |
+| --- | --- | --- | --- | --- |
+| `motor-web` | `/railway.web.json` | `pnpm start` | `GET /api/health` | Sí |
+| `motor-worker` | `/railway.json` | `pnpm --filter @motor/analysis-worker start` | `GET /health` | No |
 
-Configura las variables de `.env.example` en Railway y aplica primero la migración de Supabase. Este repositorio no despliega ni escribe secretos automáticamente.
+En Railway, establece el **Config file path** de cada servicio con la ruta indicada en la tabla. Ambos servicios usan `/` como root directory.
+
+Variables mínimas para `motor-web`:
+
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- `RATE_LIMIT_SALT`
+- `RATE_LIMIT_MAX=5`
+- `RATE_LIMIT_WINDOW_SECONDS=3600`
+
+Variables mínimas para `motor-worker`:
+
+- `OPENAI_API_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- Todas las variables de motor y worker incluidas en `.env.example`
+
+Railway inyecta `PORT` automáticamente. No copies `PORT=3001` al entorno desplegado. Genera un dominio público solo para `motor-web`; `motor-worker` procesa la cola y no necesita recibir tráfico público.
+
+Configura los secretos en Railway y aplica primero la migración de Supabase. Nunca subas el archivo `.env` al repositorio.
 
 ## Resultados
 
