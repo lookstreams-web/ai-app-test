@@ -46,7 +46,6 @@ Eduardo, Joel y Jorge.
 - OpenAI API — GPT-5.6 con structured outputs
 - Zod
 - Railway
-- Arquitectura stateless, sin base de datos
 
 ## Estado
 
