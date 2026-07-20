@@ -1,6 +1,6 @@
 # AI APP TEST
 
-**Detector de humo para contenido digital.** Pega un enlace de YouTube o el texto de un artículo y la aplicación analiza el discurso con GPT-5.6 para identificar falacias, apelaciones emocionales y afirmaciones sin sustento.
+**Detector de humo para contenido digital y conversaciones cotidianas.** Pega un enlace de YouTube o el texto de un artículo y la aplicación analiza el discurso con GPT-5.6 para identificar falacias, apelaciones emocionales y afirmaciones sin sustento. La arquitectura es extensible a situaciones de la vida diaria mediante grabación de audio y conversión de voz a texto, siempre con el consentimiento de las personas involucradas.
 
 El resultado no pretende decidir por ti: ofrece señales para evaluar el contenido con más criterio. Incluye un índice de hype de 0 a 100, un desglose de la composición del discurso, hallazgos con citas y timestamps, y un resumen ejecutivo.
 
