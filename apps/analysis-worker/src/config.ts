@@ -2,10 +2,11 @@ import { z } from "zod";
 
 const booleanFromEnv = z.string().default("true").transform((value) => value.toLowerCase() === "true");
 
-export const workerConfigSchema = z.object({
+const workerEnvironmentSchema = z.object({
   OPENAI_API_KEY: z.string().min(1),
   SUPABASE_URL: z.url(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  SUPABASE_SECRET_KEY: z.string().default(""),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().default(""),
   OPENAI_MODEL_GENERAL: z.string().default("gpt-5.6-terra"),
   OPENAI_MODEL_JUDGE: z.string().default("gpt-5.6-sol"),
   MAX_CLAIMS: z.coerce.number().int().min(1).max(5).default(3),
@@ -19,7 +20,20 @@ export const workerConfigSchema = z.object({
   EMIT_LEGACY_V1: booleanFromEnv,
   PORT: z.coerce.number().int().min(1).max(65_535).default(3_001),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info")
-}).strict();
+}).superRefine((environment, context) => {
+  if (!environment.SUPABASE_SECRET_KEY && !environment.SUPABASE_SERVICE_ROLE_KEY) {
+    context.addIssue({
+      code: "custom",
+      message: "Configura SUPABASE_SECRET_KEY o SUPABASE_SERVICE_ROLE_KEY",
+      path: ["SUPABASE_SECRET_KEY"]
+    });
+  }
+});
+
+export const workerConfigSchema = workerEnvironmentSchema.transform((environment) => ({
+  ...environment,
+  SUPABASE_SERVICE_ROLE_KEY: environment.SUPABASE_SECRET_KEY || environment.SUPABASE_SERVICE_ROLE_KEY
+}));
 
 export type WorkerConfig = z.infer<typeof workerConfigSchema>;
 

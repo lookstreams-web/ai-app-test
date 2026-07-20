@@ -16,6 +16,7 @@ import type {
   AtomicClaim,
   ClaimPlan,
   DiscourseAnalysis,
+  ResearchBundle,
   ScoredClaim
 } from "./types.js";
 
@@ -130,6 +131,14 @@ function fallbackJudgment(claim: AtomicClaim, explanation: string): ClaimJudgmen
   });
 }
 
+export function bindResearchToClaim(claim: AtomicClaim, research: ResearchBundle): ResearchBundle {
+  return {
+    ...research,
+    claimId: claim.id,
+    evidence: research.evidence.map((item) => ({ ...item, claimId: claim.id }))
+  };
+}
+
 export class DeterministicAnalysisEngine {
   constructor(private readonly gateway: AgentGateway, private readonly options: AnalysisEngineOptions) {}
 
@@ -161,7 +170,7 @@ export class DeterministicAnalysisEngine {
     const researchResults = await Promise.all(selected.map(({ claim }) => limiter(async () => {
       if (!input.options.webResearch) return { claimId: claim.id, searchedQueries: [], evidence: [], limitations: ["La investigación web fue desactivada."] };
       try {
-        return await this.gateway.researchClaim(input, claim, runOptions.signal);
+        return bindResearchToClaim(claim, await this.gateway.researchClaim(input, claim, runOptions.signal));
       } catch {
         partialFailure = true;
         return { claimId: claim.id, searchedQueries: [], evidence: [], limitations: ["La investigación web de esta afirmación falló."] };

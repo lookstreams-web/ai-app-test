@@ -63,7 +63,7 @@ En PowerShell, reemplaza `cp` por:
 Copy-Item .env.example .env
 ```
 
-El worker requiere `OPENAI_API_KEY`, `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`. Nunca expongas estas claves al navegador.
+El worker requiere `OPENAI_API_KEY`, `SUPABASE_URL` y una clave de servidor: `SUPABASE_SECRET_KEY` (recomendada) o `SUPABASE_SERVICE_ROLE_KEY` (legacy). Nunca expongas estas claves al navegador.
 
 ## Supabase
 

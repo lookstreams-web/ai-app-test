@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AnalysisJobInput } from "@motor/analysis-contracts";
-import { DeterministicAnalysisEngine, splitAnalysisInput } from "./engine.js";
-import type { AgentGateway } from "./types.js";
+import { bindResearchToClaim, DeterministicAnalysisEngine, splitAnalysisInput } from "./engine.js";
+import type { AgentGateway, AtomicClaim } from "./types.js";
 
 const input: AnalysisJobInput = {
   source: { url: "https://youtube.com/watch?v=test", videoId: "test", title: "Prueba", durationSeconds: 120, channel: { id: "c1", name: "Canal", url: null } },
@@ -26,6 +26,28 @@ function gateway(): AgentGateway {
 }
 
 describe("orquestación", () => {
+  it("asocia la evidencia al claim real aunque el agente devuelva otro ID", () => {
+    const claim: AtomicClaim = {
+      id: "claim-real", text: "Dato", quote: "Dato", startSeconds: 1, endSeconds: 2,
+      centrality: 1, potentialHarm: 1, actionInducement: 1, verifiability: 1,
+      repetition: 0, isCentralPromise: true, sensitiveDomain: "none"
+    };
+    const result = bindResearchToClaim(claim, {
+      claimId: "claim-inventado",
+      searchedQueries: [],
+      limitations: [],
+      evidence: [{
+        id: "e1", claimId: "claim-inventado", url: "https://example.com", title: "Fuente",
+        publisher: null, excerpt: "Dato", stance: "supports", sourceType: "primaryOfficial",
+        publishedAt: null, retrievedAt: "2026-07-20T00:00:00Z", directness: 1,
+        temporalFit: 1, geographicFit: 1, independence: 1, proceduralStatus: "final",
+        originClusterId: "o1", contentHash: null
+      }]
+    });
+    expect(result.claimId).toBe("claim-real");
+    expect(result.evidence[0]?.claimId).toBe("claim-real");
+  });
+
   it("divide transcripts largos conservando segmentos y timestamps", () => {
     const chunks = splitAnalysisInput(input, 45);
     expect(chunks).toHaveLength(2);

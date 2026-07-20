@@ -121,7 +121,7 @@ export const claimPlanSchema = z.object({
 export const evidenceSchema = z.object({
   id: z.string().min(1),
   claimId: z.string().min(1).nullable(),
-  url: urlSchema,
+  url: z.string().min(1),
   title: z.string().min(1),
   publisher: z.string().nullable(),
   excerpt: z.string().min(1).max(1200),
@@ -145,7 +145,7 @@ export const evidenceSchema = z.object({
   independence: ratioSchema,
   proceduralStatus: z.enum(["final", "pending", "allegation", "notApplicable", "unknown"]),
   originClusterId: z.string().min(1),
-  contentHash: z.string().nullable().default(null)
+  contentHash: z.string().nullable()
 }).strict();
 
 export type Evidence = z.infer<typeof evidenceSchema>;
