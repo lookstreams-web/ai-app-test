@@ -1,0 +1,172 @@
+{
+  "diagnostico_final": {
+    "titular": "ALERTA: 22 % de las afirmaciones importantes resultó incorrecto y detectamos señales de posible manipulación en 58 % del contenido.",
+    "puntaje_de_alerta_pct": 55,
+    "nivel": "precaucion_media",
+    "afirmaciones": {
+      "respaldadas_pct": 44,
+      "incompletas_o_sin_contexto_pct": 18,
+      "incorrectas_segun_fuentes_pct": 22,
+      "sin_comprobar_pct": 16,
+      "explicacion": "Estos porcentajes suman 100. Las promesas principales cuentan más que los detalles menores."
+    },
+    "posible_manipulacion": {
+      "contenido_con_senales_pct": 58,
+      "urgencia_o_presion_pct": 20,
+      "senales_principales": [
+        "Presenta testimonios como si demostraran resultados generales.",
+        "Habla con más seguridad de la que permiten las fuentes.",
+        "Usa plazos y pocos cupos cerca de la compra."
+      ],
+      "explicacion": "Mide cuánto contenido contiene estas señales. No prueba la intención personal del creador."
+    },
+    "evidencia_revisada_pct": 87,
+    "estado_de_la_revision": "amplia",
+    "consejo_inmediato": "No decidas solo con este video. Comprueba la promesa principal y revisa las condiciones antes de pagar."
+  },
+  "resumen": {
+    "en_pocas_palabras": "El video explica algunas ideas útiles, pero también intenta vender y apurar la decisión. La promesa principal no coincide con la fuente consultada. Te conviene comparar antes de comprar o compartir.",
+    "lo_que_aporta": [
+      {
+        "texto": "Explica pasos que pueden ayudarte a entender el tema.",
+        "fuentes": ["fuente-video"]
+      },
+      {
+        "texto": "Una cifra de mercado sí coincide con el informe consultado.",
+        "fuentes": ["fuente-informe"]
+      }
+    ],
+    "ten_cuidado_con": [
+      {
+        "texto": "La tasa de resultados anunciada no aparece en la fuente disponible.",
+        "fuentes": ["fuente-video", "fuente-datos"]
+      },
+      {
+        "texto": "El video usa frases de último día y pocos cupos cerca de la compra.",
+        "fuentes": ["fuente-video"]
+      }
+    ],
+    "no_pudimos_comprobar": [
+      {
+        "texto": "No pudimos confirmar si realmente quedaban tres cupos.",
+        "fuentes": ["fuente-video", "fuente-oferta"]
+      },
+      {
+        "texto": "Algunas afirmaciones futuras todavía no se pueden comprobar.",
+        "fuentes": ["fuente-video"]
+      }
+    ]
+  },
+  "contenido_del_video": {
+    "venta_o_promocion_pct": 38,
+    "informacion_util_pct": 46,
+    "informacion_util_con_respaldo_pct": 32,
+    "urgencia_o_presion_pct": 20,
+    "explicacion": "Estos porcentajes describen el contenido revisado. Algunos pueden superponerse y no tienen que sumar 100."
+  },
+  "contrastes": [
+    {
+      "dice": "El 90 % de los alumnos obtiene resultados en 30 días.",
+      "encontramos": "La fuente disponible muestra una cifra y un plazo diferentes.",
+      "conclusion": "no_coincide",
+      "explicacion": "Esta afirmación es incorrecta según las fuentes consultadas: el porcentaje exacto no aparece en los datos.",
+      "momento_del_video": "05:02",
+      "fuentes": ["fuente-video", "fuente-datos"]
+    },
+    {
+      "dice": "El mercado creció 12 % durante el último año.",
+      "encontramos": "El informe consultado muestra el mismo porcentaje para esa región y periodo.",
+      "conclusion": "coincide",
+      "explicacion": "La cifra, el lugar y el periodo coinciden con la fuente.",
+      "momento_del_video": "03:08",
+      "fuentes": ["fuente-video", "fuente-informe"]
+    },
+    {
+      "dice": "Solo quedan tres cupos y la oferta termina hoy.",
+      "encontramos": "La página muestra la oferta, pero no permite comprobar cuántos cupos quedan.",
+      "conclusion": "no_se_pudo_comprobar",
+      "explicacion": "No encontrar una prueba no significa que la frase sea falsa.",
+      "momento_del_video": "16:52",
+      "fuentes": ["fuente-video", "fuente-oferta"]
+    }
+  ],
+  "contexto_publico": {
+    "que_revisamos": [
+      "YouTube y cuatro videos recientes",
+      "sitio y oferta oficial",
+      "perfil profesional público",
+      "comunidad pública",
+      "búsqueda web y registros públicos"
+    ],
+    "lo_positivo_comprobado": [
+      {
+        "texto": "No encontramos suficientes experiencias positivas independientes para resumir una tendencia.",
+        "fuentes": []
+      }
+    ],
+    "alertas_comprobadas": [
+      {
+        "texto": "Existe una actuación pública final sobre una práctica comercial específica.",
+        "fuentes": ["fuente-actuacion"]
+      }
+    ],
+    "comentarios_que_solo_son_opiniones": [
+      {
+        "texto": "Vimos comentarios positivos y negativos que no se pudieron comprobar de forma independiente.",
+        "fuentes": ["fuente-video"]
+      }
+    ],
+    "explicacion": "Los comentarios visibles no representan a todos los clientes y no prueban por sí solos que algo ocurrió."
+  },
+  "consejo": {
+    "recomendacion_principal": "No tomes una decisión solo con este video.",
+    "por_que": "La promesa principal no coincide con la fuente y el video usa urgencia cerca de la compra.",
+    "antes_de_decidir": [
+      "Pide la fuente original, la cantidad de participantes y la definición de resultado.",
+      "Lee las condiciones y exclusiones de la devolución.",
+      "Compara la promesa con una fuente independiente."
+    ],
+    "preguntas_que_puedes_hacer": [
+      "¿Cuántas personas participaron y cuántas terminaron?",
+      "¿Qué significa exactamente obtener resultados?",
+      "¿La oferta realmente termina hoy?"
+    ]
+  },
+  "fuentes_principales": [
+    {
+      "id": "fuente-video",
+      "nombre": "Video analizado",
+      "enlace": "https://www.youtube.com/watch?v=FULL1234567",
+      "para_que_la_usamos": "Comprobar qué se dijo y en qué momento."
+    },
+    {
+      "id": "fuente-datos",
+      "nombre": "Datos primarios de resultados",
+      "enlace": "https://example.org/primary-results",
+      "para_que_la_usamos": "Contrastar la tasa de resultados."
+    },
+    {
+      "id": "fuente-informe",
+      "nombre": "Informe de mercado",
+      "enlace": "https://example.gov/report-demo",
+      "para_que_la_usamos": "Comprobar la cifra de mercado y sus límites."
+    },
+    {
+      "id": "fuente-oferta",
+      "nombre": "Página oficial de la oferta",
+      "enlace": "https://example.com/demo-offer",
+      "para_que_la_usamos": "Revisar qué ofrece y qué condiciones publica."
+    },
+    {
+      "id": "fuente-actuacion",
+      "nombre": "Resolución pública",
+      "enlace": "https://example.gov/final-action-demo",
+      "para_que_la_usamos": "Confirmar el alcance exacto de una actuación pública final."
+    }
+  ],
+  "avisos": [
+    "Este análisis evalúa el video y las fuentes disponibles, no la honestidad de la persona.",
+    "El puntaje de alerta combina varias señales; no es un porcentaje de mentira.",
+    "Este archivo usa datos inventados únicamente para mostrar el formato."
+  ]
+}

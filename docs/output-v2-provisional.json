@@ -1,0 +1,616 @@
+{
+  "meta": {
+    "schemaVersion": "2.0.0-draft",
+    "methodologyVersion": "0.3.0-experimental",
+    "runId": "run-demo-partial-001",
+    "status": "partial",
+    "asOf": "2026-07-19T23:30:00-05:00",
+    "recheckAfter": "2026-08-19T23:30:00-05:00",
+    "language": "es",
+    "isIllustrativeFixture": true
+  },
+  "input": {
+    "type": "youtube",
+    "url": "https://www.youtube.com/watch?v=DEMO1234567",
+    "videoId": "DEMO1234567",
+    "channelId": "channel-demo-001",
+    "durationSeconds": 1200,
+    "observedTranscriptSeconds": 720,
+    "mediaDurationCoverage": 0.6,
+    "transcript": {
+      "source": "automaticCaptions",
+      "language": "es",
+      "usableSegmentCount": 94,
+      "criticalQuotesAudioVerified": true
+    }
+  },
+  "globalRisk": {
+    "observedRiskScore": 75,
+    "observedRiskScoreRaw": 77.05,
+    "unit": "risk_points_out_of_100_observed",
+    "status": "provisional",
+    "scoreBand": "indeterminate",
+    "scoreCoverage": 0.38,
+    "knownWeightPoints": 38,
+    "knownRiskPoints": 29.28,
+    "missingWeightPoints": 62,
+    "uncertaintyRange": {
+      "min": 30,
+      "max": 90,
+      "minRaw": 29.28,
+      "maxRaw": 91.28
+    },
+    "assessmentAllowed": false,
+    "reason": "La promesa central quedó sin evidencia suficiente y no se completó la investigación de riesgo público ni la corroboración de señales de audiencia.",
+    "safetyOverride": {
+      "active": true,
+      "type": "centralClaimUnresolved",
+      "action": "showIndeterminateAndRequireMoreEvidence"
+    },
+    "weights": {
+      "factualRisk": 0.3,
+      "manipulationPersuasionRisk": 0.25,
+      "crossVideoPatternRisk": 0.15,
+      "transparencyRisk": 0.1,
+      "corroboratedPublicRisk": 0.15,
+      "audienceEvidenceRisk": 0.05
+    },
+    "components": [
+      {
+        "category": "factualRisk",
+        "fixedWeightPoints": 30,
+        "score": 100,
+        "coverage": 0.25,
+        "coverageNumerator": 0.25,
+        "coverageDenominator": 1,
+        "coverageMethod": "resolved_claim_weight_over_all_eligible_claim_weight",
+        "confidence": 0.86,
+        "knownWeightPoints": 7.5,
+        "knownRiskPoints": 7.5,
+        "weightedObservedContribution": 7.5,
+        "formulaVersion": "factual-v1",
+        "findingRefs": ["finding-claim-1"],
+        "sourceRefs": ["source-video-1", "source-primary-1"]
+      },
+      {
+        "category": "manipulationPersuasionRisk",
+        "fixedWeightPoints": 25,
+        "score": 75,
+        "coverage": 0.9,
+        "coverageNumerator": 648,
+        "coverageDenominator": 720,
+        "coverageMethod": "classified_seconds_over_usable_transcript_seconds",
+        "confidence": 0.78,
+        "knownWeightPoints": 22.5,
+        "knownRiskPoints": 16.88,
+        "weightedObservedContribution": 16.88,
+        "formulaVersion": "persuasion-v1",
+        "findingRefs": ["finding-urgency-1"],
+        "sourceRefs": ["source-video-1"]
+      },
+      {
+        "category": "crossVideoPatternRisk",
+        "fixedWeightPoints": 15,
+        "score": 55,
+        "coverage": 0.2,
+        "coverageNumerator": 1,
+        "coverageDenominator": 5,
+        "coverageMethod": "successfully_analyzed_recent_videos_over_planned_videos_adjusted_by_transcript_coverage",
+        "confidence": 0.42,
+        "knownWeightPoints": 3,
+        "knownRiskPoints": 1.65,
+        "weightedObservedContribution": 1.65,
+        "formulaVersion": "recent-pattern-v1",
+        "findingRefs": ["finding-pattern-1"],
+        "sourceRefs": ["source-video-1", "source-video-2"]
+      },
+      {
+        "category": "transparencyRisk",
+        "fixedWeightPoints": 10,
+        "score": 65,
+        "coverage": 0.5,
+        "coverageNumerator": 5,
+        "coverageDenominator": 10,
+        "coverageMethod": "inspected_applicable_check_weight_over_total_applicable_check_weight",
+        "confidence": 0.68,
+        "knownWeightPoints": 5,
+        "knownRiskPoints": 3.25,
+        "weightedObservedContribution": 3.25,
+        "formulaVersion": "transparency-v1",
+        "findingRefs": ["finding-claim-1"],
+        "sourceRefs": ["source-video-1", "source-primary-1"]
+      },
+      {
+        "category": "corroboratedPublicRisk",
+        "fixedWeightPoints": 15,
+        "score": null,
+        "coverage": 0,
+        "coverageNumerator": 0,
+        "coverageDenominator": 10,
+        "coverageMethod": "completed_weighted_search_targets_over_planned_weighted_targets",
+        "confidence": 0,
+        "knownWeightPoints": 0,
+        "knownRiskPoints": 0,
+        "weightedObservedContribution": 0,
+        "formulaVersion": "public-risk-v1",
+        "findingRefs": [],
+        "sourceRefs": []
+      },
+      {
+        "category": "audienceEvidenceRisk",
+        "fixedWeightPoints": 5,
+        "score": null,
+        "coverage": 0,
+        "coverageNumerator": 0,
+        "coverageDenominator": 4,
+        "coverageMethod": "completed_corroboration_weight_over_selected_signal_weight",
+        "confidence": 0,
+        "knownWeightPoints": 0,
+        "knownRiskPoints": 0,
+        "weightedObservedContribution": 0,
+        "formulaVersion": "audience-evidence-v1",
+        "findingRefs": [],
+        "sourceRefs": []
+      }
+    ]
+  },
+  "executiveSummaryGeneral": {
+    "headline": "Alta presión comercial observada, pero el resultado global aún no es concluyente",
+    "summary": "El contenido observado dedica 48 % del tiempo transcrito a promoción y presenta urgencia en 31 %. La única afirmación resuelta fue contradicha por la fuente primaria consultada; la promesa comercial central continúa sin evidencia suficiente. El riesgo observado es 75/100 en 38 % del peso analizable y el rango global compatible es de 30 a 90 por la información faltante.",
+    "scoreInterpretation": "El número expresa puntos de riesgo de la porción observada, no probabilidad de mentira ni reputación del creador.",
+    "contentBalance": {
+      "marketingPromotionPct": 48,
+      "candidateValuePct": 34,
+      "supportedValuePct": 18,
+      "contradictedClaimWeightPct": 25,
+      "unresolvedClaimWeightPct": 75,
+      "urgencyExposurePct": 31
+    },
+    "topFindingRefs": ["finding-claim-1", "finding-urgency-1", "finding-pattern-1"],
+    "claimRefs": ["claim-1", "claim-2", "claim-3"],
+    "sourceRefs": ["source-video-1", "source-primary-1", "source-video-2"],
+    "recommendationRefs": ["recommendation-1", "recommendation-2"],
+    "limitationRefs": ["limitation-1", "limitation-2", "limitation-3"]
+  },
+  "categorySummaries": [
+    {
+      "category": "factualRisk",
+      "score": 100,
+      "coverage": 0.25,
+      "status": "provisional",
+      "headline": "Una claim contradicha; la mayoría permanece sin resolver",
+      "summary": "La fuente primaria contradice la cifra exacta de la claim-1. Esto no permite extrapolar falsedad al resto del video.",
+      "findingRefs": ["finding-claim-1"],
+      "claimRefs": ["claim-1", "claim-2", "claim-3"],
+      "sourceRefs": ["source-video-1", "source-primary-1"],
+      "recommendationRefs": ["recommendation-1"]
+    },
+    {
+      "category": "manipulationPersuasionRisk",
+      "score": 75,
+      "coverage": 0.9,
+      "status": "provisional",
+      "headline": "Presión comercial alta en el contenido observado",
+      "summary": "La urgencia y la certeza superior a la evidencia aparecen cerca de la llamada a la acción.",
+      "findingRefs": ["finding-urgency-1"],
+      "claimRefs": ["claim-2"],
+      "sourceRefs": ["source-video-1"],
+      "recommendationRefs": ["recommendation-2"]
+    },
+    {
+      "category": "crossVideoPatternRisk",
+      "score": 55,
+      "coverage": 0.2,
+      "status": "provisional",
+      "headline": "Señal emergente, todavía no patrón recurrente",
+      "summary": "La frase de cupos limitados apareció en dos videos; se requieren al menos tres ocurrencias independientes.",
+      "findingRefs": ["finding-pattern-1"],
+      "claimRefs": ["claim-2"],
+      "sourceRefs": ["source-video-1", "source-video-2"],
+      "recommendationRefs": ["recommendation-2"]
+    },
+    {
+      "category": "transparencyRisk",
+      "score": 65,
+      "coverage": 0.5,
+      "status": "provisional",
+      "headline": "Faltan método y denominador para la promesa central",
+      "summary": "Se encontró una página comercial, pero no una metodología pública que permita reproducir la tasa anunciada.",
+      "findingRefs": ["finding-claim-1"],
+      "claimRefs": ["claim-2"],
+      "sourceRefs": ["source-primary-1"],
+      "recommendationRefs": ["recommendation-1"]
+    },
+    {
+      "category": "corroboratedPublicRisk",
+      "score": null,
+      "coverage": 0,
+      "status": "unavailable",
+      "headline": "Investigación pública no completada",
+      "summary": "No se asigna riesgo bajo ni alto porque los objetivos de búsqueda no terminaron.",
+      "findingRefs": [],
+      "claimRefs": [],
+      "sourceRefs": [],
+      "recommendationRefs": ["recommendation-3"]
+    },
+    {
+      "category": "audienceEvidenceRisk",
+      "score": null,
+      "coverage": 0,
+      "status": "unavailable",
+      "headline": "Comentarios muestreados, pero sin incidentes corroborados",
+      "summary": "Los temas positivos y negativos son señales de una muestra visible; no describen a toda la audiencia ni prueban experiencias.",
+      "findingRefs": [],
+      "claimRefs": [],
+      "sourceRefs": ["source-comments-1"],
+      "recommendationRefs": ["recommendation-3"]
+    }
+  ],
+  "contentMetrics": {
+    "denominator": "observed_transcript_seconds",
+    "observedClassifiedSeconds": 720,
+    "contentMixPct": {
+      "marketingPromotion": 48,
+      "substantiveExplanation": 22,
+      "actionableGuidance": 12,
+      "opinionPersonalNarrative": 16,
+      "neutralOther": 2
+    },
+    "actionableInformation": {
+      "candidateValuePct": 34,
+      "supportedValuePct": 18,
+      "rubricVersion": "utility-v1"
+    },
+    "claimOutcomeDistributionPct": {
+      "status": "applicable",
+      "supported": 0,
+      "mostlySupported": 0,
+      "misleadingMissingContext": 0,
+      "contradicted": 25,
+      "disputed": 0,
+      "insufficientEvidence": 35,
+      "notYetVerifiable": 40
+    },
+    "claimOutcomeRollupsPct": {
+      "supportedClaimWeightPct": 0,
+      "misleadingClaimWeightPct": 0,
+      "contradictedClaimWeightPct": 25,
+      "unresolvedClaimWeightPct": 75
+    },
+    "techniqueExposurePct": {
+      "anyPersuasion": 68,
+      "urgency": 31,
+      "scarcity": 24,
+      "emotionalPressure": 18,
+      "identityPressure": 9,
+      "authorityOrSocialProof": 21,
+      "testimonialAsEvidence": 15,
+      "certaintyEvidenceMismatch": 27,
+      "falsePrecisionOrMissingDenominator": 14,
+      "causalOverreach": 8,
+      "priceOrRiskFraming": 19,
+      "inoculationAgainstCritics": 4
+    }
+  },
+  "claimInventory": {
+    "totalDetected": 4,
+    "verifiableEligible": 3,
+    "selectedForResearch": 2,
+    "resolved": 1,
+    "eligibleWeight": 1,
+    "resolvedWeight": 0.25,
+    "omittedWeight": 0.4,
+    "selectionRuleVersion": "claim-priority-v1"
+  },
+  "keyFindings": [
+    {
+      "id": "finding-claim-1",
+      "title": "La cifra exacta publicada no coincide con la fuente primaria",
+      "statement": "La claim atómica sobre una tasa de 90 % está contradicha para el periodo y población especificados.",
+      "primaryComponent": "factualRisk",
+      "secondarySignals": ["transparencyRisk", "falsePrecisionOrMissingDenominator"],
+      "severity": "high",
+      "confidence": 0.86,
+      "quote": {
+        "original": "Nueve de cada diez alumnos consiguen resultados en treinta días.",
+        "startSeconds": 312,
+        "endSeconds": 318,
+        "audioVerified": true
+      },
+      "claimRefs": ["claim-1"],
+      "sourceRefs": ["source-video-1", "source-primary-1"],
+      "recommendationRefs": ["recommendation-1"]
+    },
+    {
+      "id": "finding-urgency-1",
+      "title": "Urgencia comercial alrededor de la decisión",
+      "statement": "La llamada a la acción combina plazo inmediato y disponibilidad no verificable.",
+      "primaryComponent": "manipulationPersuasionRisk",
+      "secondarySignals": ["urgency", "scarcity"],
+      "severity": "high",
+      "confidence": 0.78,
+      "quote": {
+        "original": "Entra hoy porque quedan tres lugares y mañana cierro.",
+        "startSeconds": 684,
+        "endSeconds": 690,
+        "audioVerified": true
+      },
+      "claimRefs": ["claim-2"],
+      "sourceRefs": ["source-video-1"],
+      "recommendationRefs": ["recommendation-2"]
+    },
+    {
+      "id": "finding-pattern-1",
+      "title": "Escasez repetida en una muestra aún insuficiente",
+      "statement": "La misma idea de cupos limitados aparece en dos videos, por debajo del umbral de recurrencia.",
+      "primaryComponent": "crossVideoPatternRisk",
+      "secondarySignals": ["scarcity"],
+      "severity": "medium",
+      "confidence": 0.42,
+      "quote": null,
+      "claimRefs": ["claim-2"],
+      "sourceRefs": ["source-video-1", "source-video-2"],
+      "recommendationRefs": ["recommendation-2"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim-1",
+      "text": "El 90 % de los alumnos consigue resultados en 30 días.",
+      "normalizedWeight": 0.25,
+      "centrality": "high",
+      "outcome": "contradicted",
+      "outcomeReason": "La tabla primaria consultada informa una tasa y periodo distintos.",
+      "quoteStartSeconds": 312,
+      "sourceRefs": ["source-video-1", "source-primary-1"]
+    },
+    {
+      "id": "claim-2",
+      "text": "Quedan exactamente tres lugares y la inscripción cierra mañana.",
+      "normalizedWeight": 0.35,
+      "centrality": "critical",
+      "outcome": "insufficientEvidence",
+      "outcomeReason": "La disponibilidad interna no pudo verificarse públicamente.",
+      "quoteStartSeconds": 684,
+      "sourceRefs": ["source-video-1"]
+    },
+    {
+      "id": "claim-3",
+      "text": "El método funciona de forma consistente en el mercado descrito.",
+      "normalizedWeight": 0.4,
+      "centrality": "high",
+      "outcome": "notYetVerifiable",
+      "outcomeReason": "No fue seleccionada antes del timeout de la ejecución.",
+      "quoteStartSeconds": 421,
+      "sourceRefs": ["source-video-1"]
+    }
+  ],
+  "persuasionFindings": [
+    {
+      "id": "persuasion-1",
+      "findingRef": "finding-urgency-1",
+      "techniques": ["urgency", "scarcity"],
+      "startSeconds": 684,
+      "endSeconds": 690,
+      "severity": "high",
+      "confidence": 0.78
+    }
+  ],
+  "recentSamplePatterns": [
+    {
+      "id": "pattern-1",
+      "patternKey": "limited-spots-before-cta",
+      "classification": "emerging",
+      "occurrences": 2,
+      "independentVideos": 2,
+      "plannedVideos": 5,
+      "analyzedVideos": 2,
+      "findingRef": "finding-pattern-1",
+      "sourceRefs": ["source-video-1", "source-video-2"]
+    }
+  ],
+  "creatorPublicContext": {
+    "identity": {
+      "status": "probable",
+      "confidence": 0.72,
+      "attributionSignals": ["channel_link_to_official_site"],
+      "maxHops": 2
+    },
+    "searchPlan": {
+      "version": "creator-search-v1",
+      "languages": ["es"],
+      "jurisdictions": ["PE"],
+      "favorableAndAdverseQueriesBalanced": true,
+      "plannedWeightedTargets": 10,
+      "completedWeightedTargets": 3,
+      "stopReason": "run_timeout"
+    },
+    "platformResearch": [
+      {
+        "platform": "youtube",
+        "accessStatus": "partial",
+        "attributionStatus": "confirmed",
+        "itemsPlanned": 5,
+        "itemsObserved": 2,
+        "sourceRefs": ["source-video-1", "source-video-2"]
+      },
+      {
+        "platform": "linkedin",
+        "accessStatus": "restricted",
+        "attributionStatus": "ambiguous",
+        "itemsPlanned": 1,
+        "itemsObserved": 0,
+        "sourceRefs": []
+      },
+      {
+        "platform": "skool",
+        "accessStatus": "notFound",
+        "attributionStatus": "ambiguous",
+        "itemsPlanned": 1,
+        "itemsObserved": 0,
+        "sourceRefs": []
+      },
+      {
+        "platform": "generalWeb",
+        "accessStatus": "partial",
+        "attributionStatus": "probable",
+        "itemsPlanned": 3,
+        "itemsObserved": 1,
+        "sourceRefs": ["source-primary-1"]
+      }
+    ]
+  },
+  "audienceSignals": {
+    "status": "signalsOnly",
+    "observedComments": 40,
+    "samplingMethod": "20_recent_plus_20_relevant",
+    "videosCovered": 1,
+    "observedSampleSharePct": {
+      "positive": 55,
+      "negative": 25,
+      "mixedOrNeutral": 20
+    },
+    "deduplicatedClusters": 23,
+    "coordinationAnomalies": 2,
+    "specificExperienceSignals": 4,
+    "corroboratedIndependentCases": 0,
+    "prevalenceInferenceAllowed": false,
+    "sourceRefs": ["source-comments-1"]
+  },
+  "sourceAppendix": [
+    {
+      "id": "source-video-1",
+      "type": "youtubeVideo",
+      "title": "Video principal de demostración",
+      "url": "https://www.youtube.com/watch?v=DEMO1234567",
+      "publisher": "Canal de demostración",
+      "publishedAt": "2026-07-10",
+      "effectiveAt": "2026-07-10",
+      "retrievedAt": "2026-07-19T22:00:00-05:00",
+      "excerpt": "Fuente de las citas y timestamps del contenido analizado.",
+      "stance": "claimOrigin",
+      "originClusterId": "origin-video-DEMO1234567",
+      "directness": 1,
+      "independence": 0,
+      "conflictOfInterest": "creatorControlled",
+      "proceduralStatus": "notApplicable",
+      "claimRefs": ["claim-1", "claim-2", "claim-3"],
+      "findingRefs": ["finding-claim-1", "finding-urgency-1"]
+    },
+    {
+      "id": "source-primary-1",
+      "type": "primaryDataset",
+      "title": "Tabla primaria ilustrativa de resultados",
+      "url": "https://example.org/dataset-demo",
+      "publisher": "Entidad de ejemplo",
+      "publishedAt": "2026-06-01",
+      "effectiveAt": "2026-05-31",
+      "retrievedAt": "2026-07-19T22:20:00-05:00",
+      "excerpt": "La tasa publicada para el periodo del ejemplo no coincide con 90 %.",
+      "stance": "contradicts",
+      "originClusterId": "origin-primary-demo-1",
+      "directness": 0.94,
+      "independence": 0.9,
+      "conflictOfInterest": "noneKnown",
+      "proceduralStatus": "notApplicable",
+      "claimRefs": ["claim-1"],
+      "findingRefs": ["finding-claim-1"]
+    },
+    {
+      "id": "source-video-2",
+      "type": "youtubeVideo",
+      "title": "Segundo video de la muestra reciente",
+      "url": "https://www.youtube.com/watch?v=DEMO7654321",
+      "publisher": "Canal de demostración",
+      "publishedAt": "2026-07-03",
+      "effectiveAt": "2026-07-03",
+      "retrievedAt": "2026-07-19T22:30:00-05:00",
+      "excerpt": "Contiene una segunda ocurrencia de la señal de cupos limitados.",
+      "stance": "context",
+      "originClusterId": "origin-video-DEMO7654321",
+      "directness": 1,
+      "independence": 0,
+      "conflictOfInterest": "creatorControlled",
+      "proceduralStatus": "notApplicable",
+      "claimRefs": ["claim-2"],
+      "findingRefs": ["finding-pattern-1"]
+    },
+    {
+      "id": "source-comments-1",
+      "type": "youtubeCommentSample",
+      "title": "Muestra visible de comentarios del video principal",
+      "url": "https://www.youtube.com/watch?v=DEMO1234567",
+      "publisher": "YouTube",
+      "publishedAt": null,
+      "effectiveAt": "2026-07-19",
+      "retrievedAt": "2026-07-19T22:45:00-05:00",
+      "excerpt": "Muestra no aleatoria, sujeta a moderación y ranking.",
+      "stance": "audienceSignal",
+      "originClusterId": "origin-comment-sample-DEMO1234567",
+      "directness": 0.2,
+      "independence": 0.2,
+      "conflictOfInterest": "unknown",
+      "proceduralStatus": "notApplicable",
+      "claimRefs": [],
+      "findingRefs": []
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "recommendation-1",
+      "priority": "high",
+      "action": "Solicitar la metodología, el denominador, el periodo y la fuente primaria de la tasa anunciada antes de usarla para decidir.",
+      "findingRefs": ["finding-claim-1"],
+      "claimRefs": ["claim-1", "claim-3"],
+      "sourceRefs": ["source-primary-1"]
+    },
+    {
+      "id": "recommendation-2",
+      "priority": "medium",
+      "action": "Separar el plazo comercial de la evaluación del producto y verificar si el cierre o los cupos tienen evidencia pública consistente.",
+      "findingRefs": ["finding-urgency-1", "finding-pattern-1"],
+      "claimRefs": ["claim-2"],
+      "sourceRefs": ["source-video-1", "source-video-2"]
+    },
+    {
+      "id": "recommendation-3",
+      "priority": "medium",
+      "action": "Completar la búsqueda pública y corroborar de forma independiente los relatos específicos antes de concluir sobre experiencias de usuarios.",
+      "findingRefs": [],
+      "claimRefs": [],
+      "sourceRefs": ["source-comments-1"]
+    }
+  ],
+  "limitations": [
+    {
+      "id": "limitation-1",
+      "code": "partialTranscript",
+      "message": "Solo se clasificó 60 % de la duración del video."
+    },
+    {
+      "id": "limitation-2",
+      "code": "centralClaimUnresolved",
+      "message": "La promesa comercial central continúa sin resolución factual."
+    },
+    {
+      "id": "limitation-3",
+      "code": "publicResearchIncomplete",
+      "message": "LinkedIn no fue atribuible, no se encontró una landing pública de Skool y la búsqueda web terminó por timeout."
+    },
+    {
+      "id": "limitation-4",
+      "code": "commentSampleNotRepresentative",
+      "message": "Los porcentajes de comentarios describen únicamente la muestra visible observada."
+    }
+  ],
+  "runTrace": {
+    "orchestrator": "completed",
+    "discourseAnalyst": "completed",
+    "claimResearcher": "partial",
+    "creatorContextResearcher": "partial",
+    "provenanceAuditor": "completedForAvailableSources",
+    "evidenceJudge": "partial",
+    "scoreCalculator": "completed",
+    "synthesizer": "completedFromApprovedFindings"
+  }
+}

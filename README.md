@@ -1,52 +1,151 @@
-# AI APP TEST
+# Motor de Verdad
 
-**Detector de humo para contenido digital y conversaciones cotidianas.** Pega un enlace de YouTube o el texto de un artículo y la aplicación analiza el discurso con GPT-5.6 para identificar falacias, apelaciones emocionales y afirmaciones sin sustento. La arquitectura es extensible a situaciones de la vida diaria mediante grabación de audio y conversión de voz a texto, siempre con el consentimiento de las personas involucradas.
+Backend experimental para analizar un video de YouTube a partir de un transcript segmentado, contrastar sus afirmaciones con fuentes públicas y entregar un diagnóstico comprensible.
 
-El resultado no pretende decidir por ti: ofrece señales para evaluar el contenido con más criterio. Incluye un índice de hype de 0 a 100, un desglose de la composición del discurso, hallazgos con citas y timestamps, y un resumen ejecutivo.
+El motor evalúa el contenido y la evidencia disponible. No decide si una persona es honesta ni convierte una afirmación incorrecta en una acusación de mentira.
 
-Proyecto para la hackathon **OpenAI Build Week** (julio de 2026), track *Apps for Your Life*.
+## Alcance de esta rama
 
-## Qué analiza
+Esta rama integra el backend de Eduardo con la entrada y transcripción de Jorge:
 
-- **Falacias lógicas**, como falsas dicotomías, generalizaciones apresuradas o escasez artificial.
-- **Apelaciones emocionales** que buscan persuadir mediante urgencia, miedo, aspiración o culpa.
-- **Afirmaciones empíricas** con y sin fuente citada.
-- **Opiniones** separadas de los datos verificables.
+- Contratos Zod compartidos para la entrada y las tres salidas.
+- Motor de análisis multiagente con orquestación determinista.
+- Investigación factual y de contexto público mediante web search.
+- Auditoría de procedencia, arbitraje de claims y scoring en código.
+- Worker de Supabase con leases, reintentos y persistencia atómica.
+- Health checks y configuración para Railway.
+- Endpoint Next.js que recibe una URL de YouTube, obtiene el transcript y encola el análisis.
+- Endpoint de polling y preview de transcript, con rate limit por IP hasheada.
 
-El `hypeIndex` va de **0 a 100**: un valor alto indica más señales de presión, exageración o falta de respaldo; no es una medida de verdad absoluta ni una recomendación financiera, médica o legal.
+No incluye todavía la UI final de Joel. Las páginas Next.js incluidas son placeholders de integración.
 
-## Empieza por aquí
-
-📄 **[CONTRATO.md](CONTRATO.md)** define el contrato de datos entre el motor de análisis, el backend y la UI. Léelo antes de escribir código: especifica quién produce cada campo, los invariantes del JSON, las categorías y los requisitos del schema de Zod.
-
-Los ejemplos de salida están en [`docs/`](docs/):
-
-| Archivo | Escenario |
-| --- | --- |
-| [`output-alto-riesgo.json`](docs/output-alto-riesgo.json) | Contenido con mucha emoción, urgencia y promesas sin evidencia (`hypeIndex: 72`). |
-| [`output-bajo-riesgo.json`](docs/output-bajo-riesgo.json) | Contenido mayormente fundamentado y mesurado (`hypeIndex: 14`). |
-| [`fixture-verification.json`](docs/fixture-verification.json) | Fixture de UI con los estados `verified`, `contradicted` y `noEvidence`. Representa la etapa de verificación posterior; no es la salida inicial del LLM. |
-
-## Flujo del producto
+## Estructura
 
 ```text
-YouTube o texto → extracción de contenido → análisis estructurado →
-canonicalización de citas y timestamps → resultados explicables en la UI
+app                            Entrada HTTP y páginas placeholder
+apps/analysis-worker           Worker, cola, logs y health checks
+lib/youtube                    Extracción y adaptación del transcript de YouTube
+packages/analysis-contracts   Schemas Zod compartidos
+packages/analysis-engine      Agentes, evidencia, scoring y reportes
+supabase/migrations           Tablas y funciones SQL atómicas
+docs                          PRD, metodología, contratos y fixtures
 ```
 
-Como mejora posterior, el backend podrá verificar por separado las afirmaciones empíricas mediante búsqueda web. Esa comprobación no la genera el modelo y se integra por `finding.id`.
+## Flujo
 
-## Equipo
+```text
+POST /api/analyses recibe una URL de YouTube
+  → Jorge obtiene y segmenta el transcript
+  → el adaptador valida AnalysisJobInput y lo encola en Supabase
+  → worker reserva el trabajo con SKIP LOCKED
+  → divide el transcript conservando timestamps
+  → extrae claims y analiza el discurso
+  → investiga contexto y hasta 3 claims en paralelo
+  → deduplica fuentes y excluye identidades ambiguas
+  → GPT-5.6 Sol arbitra cada claim sin buscar nuevamente
+  → TypeScript calcula los seis componentes y la incertidumbre
+  → plantillas generan el diagnóstico público
+  → una transacción guarda v2, público y v1 temporal
+```
 
-Eduardo, Joel y Jorge.
+Los comentarios positivos o negativos son pistas. Solo pueden influir en `audienceEvidenceRisk` cuando existe corroboración independiente; nunca cambian el riesgo factual por cantidad.
 
-## Stack
+## Configuración local
 
-- Next.js + Mantine UI
-- OpenAI API — GPT-5.6 con structured outputs
-- Zod
-- Railway
+Requisitos: Node.js 22 o superior y pnpm 11.
 
-## Estado
+```bash
+pnpm install
+cp .env.example .env
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm dev              # web en http://localhost:3000
+pnpm dev:worker
+```
 
-El repositorio contiene por ahora el contrato de datos y fixtures de salida. La implementación de la aplicación — endpoint, schemas, extracción de transcripts e interfaz — está pendiente.
+En PowerShell, reemplaza `cp` por:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+El worker y la API requieren `OPENAI_API_KEY`, `SUPABASE_URL` y una clave de servidor: `SUPABASE_SECRET_KEY` (recomendada) o `SUPABASE_SERVICE_ROLE_KEY` (legacy). Nunca expongas estas claves al navegador.
+
+## Supabase
+
+Aplica la migración antes de iniciar el worker:
+
+```bash
+supabase db push
+```
+
+La API valida `analysisJobInputSchema` e inserta una fila en `analyses` con `status = 'queued'`. El worker no ofrece un endpoint público para crear análisis.
+
+Prueba rápida:
+
+```bash
+curl -X POST http://localhost:3000/api/analyses \
+  -H "Content-Type: application/json" \
+  -d '{"sourceType":"youtube","url":"https://www.youtube.com/watch?v=VIDEO_ID"}'
+```
+
+Consulta el progreso con `GET /api/analyses/{id}`.
+
+Para una prueba local completa sin depender todavía del rate limit de la API web, inicia el worker y ejecuta en otra terminal:
+
+```bash
+pnpm dev:worker
+pnpm test:youtube -- "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+El comando muestra las etapas, el progreso y el diagnóstico público final. Encola directamente en el Supabase configurado en `.env`; úsalo solo para desarrollo.
+
+La cola usa:
+
+- Lease de 120 segundos, renovado cada 30 segundos.
+- Poll cada 2 segundos.
+- Tres intentos con backoff.
+- Un trabajo simultáneo por worker.
+- Tres investigaciones de claims en paralelo.
+
+## Railway
+
+El archivo `railway.json` compila y arranca `@motor/analysis-worker`.
+
+- Inicio: `pnpm --filter @motor/analysis-worker start`
+- Salud: `GET /health`
+- Preparación: `GET /ready`
+
+Configura las variables de `.env.example` en Railway y aplica primero la migración de Supabase. Este repositorio no despliega ni escribe secretos automáticamente.
+
+## Resultados
+
+El análisis guarda:
+
+1. `internal_report_v2`: reporte auditable con componentes, claims, evidencia y limitaciones.
+2. `public_diagnosis`: diagnóstico sencillo con porcentajes, tres contrastes y consejo.
+3. `legacy_v1_report`: compatibilidad temporal controlada por `EMIT_LEGACY_V1`.
+
+Los porcentajes públicos y todas las URLs se construyen en código. El sintetizador no puede inventarlos.
+
+## Verificación
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+La prueba live queda fuera del conjunto normal y solo debe ejecutarse cuando existan claves de OpenAI y Supabase para un entorno no productivo.
+
+## Documentación
+
+- [Contrato v1](CONTRATO.md)
+- [PRD del motor](docs/PRD-motor-de-analisis.md)
+- [Metodología de score](docs/METODOLOGIA-SCORE.md)
+- [Contrato interno v2](docs/CONTRATO-SALIDA-V2.md)
+- [Contrato público sencillo](docs/CONTRATO-PUBLICO-SIMPLE.md)
+
+Equipo: Eduardo, Joel y Jorge. Proyecto para OpenAI Build Week, julio de 2026.
