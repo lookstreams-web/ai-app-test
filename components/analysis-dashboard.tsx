@@ -1,0 +1,630 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Divider,
+  Group,
+  List,
+  Paper,
+  Progress,
+  SimpleGrid,
+  Skeleton,
+  Stack,
+  Text,
+  Title
+} from "@mantine/core";
+
+type PublicItem = { texto: string; fuentes: string[] };
+
+type PublicSource = {
+  id: string;
+  nombre: string;
+  enlace: string;
+  para_que_la_usamos: string;
+};
+
+type SourceMap = Map<string, PublicSource>;
+
+type PublicDiagnosis = {
+  diagnostico_final: {
+    titular: string;
+    puntaje_de_alerta_pct: number | null;
+    nivel: string;
+    afirmaciones: {
+      respaldadas_pct: number;
+      incompletas_o_sin_contexto_pct: number;
+      incorrectas_segun_fuentes_pct: number;
+      sin_comprobar_pct: number;
+      explicacion: string;
+    };
+    posible_manipulacion: {
+      contenido_con_senales_pct: number;
+      urgencia_o_presion_pct: number;
+      senales_principales: string[];
+      explicacion: string;
+    };
+    evidencia_revisada_pct: number;
+    estado_de_la_revision: "completa" | "parcial" | "requiere_revision_humana" | "amplia";
+    consejo_inmediato: string;
+  };
+  resumen: {
+    en_pocas_palabras: string;
+    lo_que_aporta: PublicItem[];
+    ten_cuidado_con: PublicItem[];
+    no_pudimos_comprobar: PublicItem[];
+  };
+  contenido_del_video: {
+    venta_o_promocion_pct: number;
+    informacion_util_pct: number;
+    informacion_util_con_respaldo_pct: number;
+    urgencia_o_presion_pct: number;
+    explicacion: string;
+  };
+  contrastes: Array<{
+    dice: string;
+    encontramos: string;
+    conclusion: string;
+    explicacion: string;
+    momento_del_video: string;
+    fuentes: string[];
+  }>;
+  contexto_publico: {
+    que_revisamos: string[];
+    lo_positivo_comprobado: PublicItem[];
+    alertas_comprobadas: PublicItem[];
+    comentarios_que_solo_son_opiniones: PublicItem[];
+    explicacion: string;
+  };
+  consejo: {
+    recomendacion_principal: string;
+    por_que: string;
+    antes_de_decidir: string[];
+    preguntas_que_puedes_hacer: string[];
+  };
+  fuentes_principales: PublicSource[];
+  avisos: string[];
+};
+
+type Snapshot = {
+  status: string;
+  progress: number;
+  result: PublicDiagnosis | null;
+  error: { message: string } | null;
+};
+
+const pending = new Set([
+  "queued",
+  "leased",
+  "analyzing",
+  "researching",
+  "adjudicating",
+  "scoring",
+  "synthesizing"
+]);
+
+const stageLabels: Record<string, string> = {
+  queued: "En cola, comenzaremos en breve",
+  leased: "Preparando el análisis",
+  analyzing: "Analizando el contenido del video",
+  researching: "Buscando evidencia en fuentes públicas",
+  adjudicating: "Contrastando afirmaciones con la evidencia",
+  scoring: "Calculando los puntajes",
+  synthesizing: "Redactando el diagnóstico"
+};
+
+const levelColors: Record<string, string> = {
+  bajo: "green",
+  moderado: "yellow",
+  medio: "yellow",
+  precaucion_media: "yellow",
+  alto: "orange",
+  "muy alto": "red",
+  sin_conclusion: "gray"
+};
+
+const conclusionColors: Record<string, string> = {
+  coincide: "green",
+  coincide_en_parte: "teal",
+  falta_contexto: "yellow",
+  hay_desacuerdo_entre_fuentes: "orange",
+  no_coincide: "red",
+  no_se_pudo_comprobar: "gray",
+  todavia_no_se_puede_saber: "gray"
+};
+
+function humanize(value: string) {
+  return value.replaceAll("_", " ");
+}
+
+function Metric({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <Stack gap={5}>
+      <Group justify="space-between">
+        <Text fw={600} size="sm">
+          {label}
+        </Text>
+        <Text fw={700} size="sm">
+          {value}%
+        </Text>
+      </Group>
+      <Progress color={color} value={value} />
+    </Stack>
+  );
+}
+
+function SourceLinks({ ids, sources }: { ids: string[]; sources: SourceMap }) {
+  const resolved = [...new Set(ids)]
+    .map((id) => sources.get(id))
+    .filter((source): source is PublicSource => Boolean(source));
+  if (!resolved.length) return null;
+  return (
+    <Group gap="xs">
+      {resolved.map((source, index) => (
+        <Anchor href={source.enlace} key={source.id} rel="noreferrer" size="xs" target="_blank">
+          Ver fuente{resolved.length > 1 ? ` ${index + 1}` : ""}
+        </Anchor>
+      ))}
+    </Group>
+  );
+}
+
+function InsightCard({
+  title,
+  items,
+  color,
+  sources
+}: {
+  title: string;
+  items: PublicItem[];
+  color: string;
+  sources: SourceMap;
+}) {
+  return (
+    <Paper withBorder p="md" radius="md">
+      <Text c={color} fw={700} mb="sm">
+        {title}
+      </Text>
+      {items.length ? (
+        <List spacing="xs" size="sm">
+          {items.map((item) => (
+            <List.Item key={item.texto}>
+              {item.texto}
+              <SourceLinks ids={item.fuentes} sources={sources} />
+            </List.Item>
+          ))}
+        </List>
+      ) : (
+        <Text c="dimmed" size="sm">
+          Nada que destacar en esta categoría.
+        </Text>
+      )}
+    </Paper>
+  );
+}
+
+export function AnalysisDashboard({ id }: { id: string }) {
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [networkError, setNetworkError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    async function load() {
+      try {
+        const response = await fetch(`/api/analyses/${id}`, { cache: "no-store" });
+        const body = await response.json();
+        if (!response.ok)
+          throw new Error(body.error?.message ?? "No pudimos consultar el análisis.");
+        if (!active) return;
+        setSnapshot(body);
+        setNetworkError(null);
+        if (pending.has(body.status)) timer = setTimeout(load, 2000);
+      } catch (caught) {
+        if (active) {
+          setNetworkError(
+            caught instanceof Error ? caught.message : "No pudimos consultar el análisis."
+          );
+        }
+      }
+    }
+
+    void load();
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [id]);
+
+  if (networkError) {
+    return (
+      <Alert color="red" title="No pudimos cargar este análisis">
+        {networkError}
+      </Alert>
+    );
+  }
+
+  if (!snapshot) {
+    return (
+      <Stack>
+        <Skeleton height={36} width="55%" />
+        <Skeleton height={220} />
+      </Stack>
+    );
+  }
+
+  if (snapshot.status === "failed") {
+    return (
+      <Alert color="red" title="El análisis no pudo completarse">
+        {snapshot.error?.message ?? "Inténtalo nuevamente con otro video."}
+      </Alert>
+    );
+  }
+
+  if (!snapshot.result) {
+    return (
+      <Paper withBorder p="xl" radius="lg">
+        <Stack gap="md">
+          <Group justify="space-between">
+            <div>
+              <Text fw={700}>Estamos preparando el diagnóstico</Text>
+              <Text c="dimmed" size="sm">
+                {stageLabels[snapshot.status] ?? snapshot.status}
+              </Text>
+            </div>
+            <Badge color="blue" variant="light">
+              {snapshot.progress}%
+            </Badge>
+          </Group>
+          <Progress animated value={snapshot.progress} />
+          {snapshot.error ? (
+            <Text c="dimmed" size="xs">
+              El intento anterior no se completó; lo estamos reintentando automáticamente.
+            </Text>
+          ) : null}
+        </Stack>
+      </Paper>
+    );
+  }
+
+  const result = snapshot.result;
+  const diagnosis = result.diagnostico_final;
+  const manipulation = diagnosis.posible_manipulacion;
+  const composition = result.contenido_del_video;
+  const publicContext = result.contexto_publico;
+  const sources: SourceMap = new Map(
+    result.fuentes_principales.map((source) => [source.id, source])
+  );
+  const provisional = diagnosis.estado_de_la_revision === "parcial";
+  const hasPublicContext =
+    publicContext.lo_positivo_comprobado.length > 0 ||
+    publicContext.alertas_comprobadas.length > 0 ||
+    publicContext.comentarios_que_solo_son_opiniones.length > 0;
+
+  return (
+    <Stack gap="xl">
+      {diagnosis.estado_de_la_revision === "requiere_revision_humana" ? (
+        <Alert color="red" title="Este diagnóstico requiere revisión humana">
+          Detectamos una contradicción importante o una posible acción oficial. No tomes decisiones
+          basándote solo en el puntaje.
+        </Alert>
+      ) : null}
+
+      <Paper bg="dark.8" p={{ base: "lg", sm: "xl" }} radius="lg">
+        <Stack gap="md">
+          <Group justify="space-between">
+            <Badge color={levelColors[diagnosis.nivel] ?? "gray"} variant="filled">
+              {humanize(diagnosis.nivel)}
+            </Badge>
+            <Text c="gray.3" size="sm">
+              {diagnosis.evidencia_revisada_pct}% de evidencia revisada
+            </Text>
+          </Group>
+          <Title c="white" order={1}>
+            {diagnosis.titular}
+          </Title>
+          <Text c="gray.3" maw={760}>
+            {result.resumen.en_pocas_palabras}
+          </Text>
+        </Stack>
+      </Paper>
+
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+        <Paper withBorder p="lg" radius="lg">
+          <Group gap="xs">
+            <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+              Puntaje de alerta
+            </Text>
+            {provisional ? (
+              <Badge color="yellow" size="sm" variant="light">
+                Provisional
+              </Badge>
+            ) : null}
+          </Group>
+          {diagnosis.puntaje_de_alerta_pct === null ? (
+            <>
+              <Text fw={700} fz={40} mt="xs">
+                Sin puntaje
+              </Text>
+              <Text c="dimmed" size="sm">
+                La evidencia revisada no alcanza para calcular un puntaje confiable.
+              </Text>
+            </>
+          ) : (
+            <Group align="end" mt="xs">
+              <Title order={2} size={64}>
+                {diagnosis.puntaje_de_alerta_pct}
+              </Title>
+              <Text mb={12}>de 100</Text>
+            </Group>
+          )}
+          {provisional ? (
+            <Text c="dimmed" size="xs" mb="xs">
+              Revisión parcial: refleja únicamente lo que sí se pudo revisar.
+            </Text>
+          ) : null}
+          <Text>{diagnosis.consejo_inmediato}</Text>
+        </Paper>
+
+        <Paper withBorder p="lg" radius="lg">
+          <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+            Afirmaciones importantes
+          </Text>
+          <Stack gap="sm" mt="md">
+            <Metric
+              color="green"
+              label="Respaldadas"
+              value={diagnosis.afirmaciones.respaldadas_pct}
+            />
+            <Metric
+              color="yellow"
+              label="Sin contexto"
+              value={diagnosis.afirmaciones.incompletas_o_sin_contexto_pct}
+            />
+            <Metric
+              color="red"
+              label="No coinciden"
+              value={diagnosis.afirmaciones.incorrectas_segun_fuentes_pct}
+            />
+            <Metric
+              color="gray"
+              label="Sin comprobar"
+              value={diagnosis.afirmaciones.sin_comprobar_pct}
+            />
+          </Stack>
+          <Text c="dimmed" mt="md" size="xs">
+            {diagnosis.afirmaciones.explicacion}
+          </Text>
+        </Paper>
+      </SimpleGrid>
+
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+        <Paper withBorder p="lg" radius="lg">
+          <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+            Señales de persuasión
+          </Text>
+          <Stack gap="sm" mt="md">
+            <Metric
+              color="orange"
+              label="Contenido con señales"
+              value={manipulation.contenido_con_senales_pct}
+            />
+            <Metric
+              color="orange"
+              label="Urgencia o presión"
+              value={manipulation.urgencia_o_presion_pct}
+            />
+          </Stack>
+          {manipulation.senales_principales.length ? (
+            <Group gap="xs" mt="md">
+              {manipulation.senales_principales.map((signal) => (
+                <Badge color="gray" key={signal} variant="light">
+                  {humanize(signal)}
+                </Badge>
+              ))}
+            </Group>
+          ) : null}
+          <Text c="dimmed" mt="md" size="xs">
+            {manipulation.explicacion}
+          </Text>
+        </Paper>
+
+        <Paper withBorder p="lg" radius="lg">
+          <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+            De qué está hecho el video
+          </Text>
+          <Stack gap="sm" mt="md">
+            <Metric
+              color="blue"
+              label="Venta o promoción"
+              value={composition.venta_o_promocion_pct}
+            />
+            <Metric
+              color="blue"
+              label="Información útil"
+              value={composition.informacion_util_pct}
+            />
+            <Metric
+              color="blue"
+              label="Información útil con respaldo"
+              value={composition.informacion_util_con_respaldo_pct}
+            />
+            <Metric
+              color="blue"
+              label="Urgencia o presión"
+              value={composition.urgencia_o_presion_pct}
+            />
+          </Stack>
+          <Text c="dimmed" mt="md" size="xs">
+            {composition.explicacion}
+          </Text>
+        </Paper>
+      </SimpleGrid>
+
+      <div>
+        <Title order={2}>Qué encontramos</Title>
+        <SimpleGrid cols={{ base: 1, md: 3 }} mt="md">
+          <InsightCard
+            color="green"
+            items={result.resumen.lo_que_aporta}
+            sources={sources}
+            title="Lo que aporta"
+          />
+          <InsightCard
+            color="orange"
+            items={result.resumen.ten_cuidado_con}
+            sources={sources}
+            title="Ten cuidado con"
+          />
+          <InsightCard
+            color="gray"
+            items={result.resumen.no_pudimos_comprobar}
+            sources={sources}
+            title="No pudimos comprobar"
+          />
+        </SimpleGrid>
+      </div>
+
+      {result.contrastes.length ? (
+        <div>
+          <Title order={2}>Contraste de afirmaciones</Title>
+          <Text c="dimmed" mt={4}>
+            Comparamos lo dicho con la evidencia disponible.
+          </Text>
+          <Stack mt="md">
+            {result.contrastes.map((contrast) => (
+              <Paper
+                key={`${contrast.momento_del_video}-${contrast.dice}`}
+                withBorder
+                p="lg"
+                radius="md"
+              >
+                <Group justify="space-between" mb="md">
+                  <Badge color={conclusionColors[contrast.conclusion] ?? "gray"}>
+                    {humanize(contrast.conclusion)}
+                  </Badge>
+                  <Text c="dimmed" size="sm">
+                    {contrast.momento_del_video}
+                  </Text>
+                </Group>
+                <SimpleGrid cols={{ base: 1, md: 2 }}>
+                  <div>
+                    <Text c="dimmed" size="xs" fw={700}>
+                      EL VIDEO DICE
+                    </Text>
+                    <Text fw={600}>&ldquo;{contrast.dice}&rdquo;</Text>
+                  </div>
+                  <div>
+                    <Text c="dimmed" size="xs" fw={700}>
+                      ENCONTRAMOS
+                    </Text>
+                    <Text>{contrast.encontramos}</Text>
+                  </div>
+                </SimpleGrid>
+                {contrast.explicacion !== contrast.encontramos ? (
+                  <Text c="dimmed" mt="md" size="sm">
+                    {contrast.explicacion}
+                  </Text>
+                ) : null}
+                <SourceLinks ids={contrast.fuentes} sources={sources} />
+              </Paper>
+            ))}
+          </Stack>
+        </div>
+      ) : null}
+
+      {hasPublicContext ? (
+        <div>
+          <Title order={2}>Contexto público de la persona creadora</Title>
+          {publicContext.que_revisamos.length ? (
+            <Group gap="xs" mt="xs">
+              <Text c="dimmed" size="sm">
+                Qué revisamos:
+              </Text>
+              {publicContext.que_revisamos.map((place) => (
+                <Badge color="gray" key={place} variant="light">
+                  {humanize(place)}
+                </Badge>
+              ))}
+            </Group>
+          ) : null}
+          <SimpleGrid cols={{ base: 1, md: 3 }} mt="md">
+            <InsightCard
+              color="green"
+              items={publicContext.lo_positivo_comprobado}
+              sources={sources}
+              title="Lo positivo comprobado"
+            />
+            <InsightCard
+              color="orange"
+              items={publicContext.alertas_comprobadas}
+              sources={sources}
+              title="Alertas comprobadas"
+            />
+            <InsightCard
+              color="gray"
+              items={publicContext.comentarios_que_solo_son_opiniones}
+              sources={sources}
+              title="Comentarios que solo son opiniones"
+            />
+          </SimpleGrid>
+          <Text c="dimmed" mt="md" size="xs">
+            {publicContext.explicacion}
+          </Text>
+        </div>
+      ) : null}
+
+      <Paper withBorder p="lg" radius="lg">
+        <Title order={2}>Antes de decidir</Title>
+        <Text mt="xs">{result.consejo.recomendacion_principal}</Text>
+        <Text c="dimmed" mt="xs">
+          {result.consejo.por_que}
+        </Text>
+        <List mt="md">
+          {result.consejo.antes_de_decidir.map((advice) => (
+            <List.Item key={advice}>{advice}</List.Item>
+          ))}
+        </List>
+        {result.consejo.preguntas_que_puedes_hacer.length ? (
+          <>
+            <Text fw={600} mt="md">
+              Preguntas que puedes hacer
+            </Text>
+            <List mt="xs">
+              {result.consejo.preguntas_que_puedes_hacer.map((question) => (
+                <List.Item key={question}>{question}</List.Item>
+              ))}
+            </List>
+          </>
+        ) : null}
+      </Paper>
+
+      {result.fuentes_principales.length ? (
+        <div>
+          <Divider mb="md" />
+          <Title order={3}>Fuentes principales</Title>
+          <Stack gap="xs" mt="sm">
+            {result.fuentes_principales.map((source) => (
+              <Anchor href={source.enlace} key={source.id} rel="noreferrer" target="_blank">
+                {source.nombre} &mdash; {source.para_que_la_usamos}
+              </Anchor>
+            ))}
+          </Stack>
+        </div>
+      ) : null}
+
+      {result.avisos.length ? (
+        <Stack gap={4}>
+          {result.avisos.map((notice) => (
+            <Text c="dimmed" key={notice} size="xs">
+              {notice}
+            </Text>
+          ))}
+        </Stack>
+      ) : null}
+    </Stack>
+  );
+}

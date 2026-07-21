@@ -1,0 +1,22 @@
+# Código de otros integrantes — aún sin formatear con Prettier.
+# Quitar de esta lista a medida que cada área se adopte.
+app/api/
+app/layout.tsx
+apps/
+lib/
+packages/
+scripts/
+supabase/
+docs/
+*.md
+*.mjs
+*.cjs
+*.json
+*.yaml
+vitest.config.ts
+
+# Generados / no formateables
+.next/
+**/settings.local.json
+pnpm-lock.yaml
+next-env.d.ts
