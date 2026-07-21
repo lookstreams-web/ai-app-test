@@ -369,6 +369,8 @@ export function AnalysisDashboard({ id, dict, locale }: { id: string; dict: Dash
     );
   }
 
+  const isVoice = snapshot.source?.kind === "voiceRecording";
+
   if (snapshot.status === "failed") {
     return (
       <Stack gap="lg">
@@ -392,7 +394,9 @@ export function AnalysisDashboard({ id, dict, locale }: { id: string; dict: Dash
                 <div>
                   <Text fw={700}>{dict.preparingTitle}</Text>
                   <Text c="dimmed" size="sm">
-                    {dict.stages[snapshot.status] ?? snapshot.status}
+                    {(isVoice && snapshot.status === "analyzing"
+                      ? dict.stages.analyzingRecording
+                      : dict.stages[snapshot.status]) ?? snapshot.status}
                   </Text>
                 </div>
                 <Badge color="indigo" variant="light">
@@ -587,7 +591,7 @@ export function AnalysisDashboard({ id, dict, locale }: { id: string; dict: Dash
 
         <Paper withBorder p="lg" radius="lg">
           <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
-            {dict.compositionTitle}
+            {isVoice ? dict.compositionTitleRecording : dict.compositionTitle}
           </Text>
           <Stack gap="sm" mt="md">
             <Metric
@@ -679,7 +683,7 @@ export function AnalysisDashboard({ id, dict, locale }: { id: string; dict: Dash
                   <SimpleGrid cols={{ base: 1, md: 2 }}>
                     <div>
                       <Text c="dimmed" size="xs" fw={700}>
-                        {dict.videoSays}
+                        {isVoice ? dict.recordingSays : dict.videoSays}
                       </Text>
                       <Text fw={600}>&ldquo;{contrast.dice}&rdquo;</Text>
                     </div>

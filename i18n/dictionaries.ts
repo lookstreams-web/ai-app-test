@@ -9,7 +9,7 @@ export function isLocale(value: unknown): value is Locale {
 const es = {
   header: {
     tagline: "Análisis con evidencia",
-    newAnalysis: "Analizar otro video"
+    newAnalysis: "Nuevo análisis"
   },
   home: {
     metaTitle: "Contrast AI — ¿Qué tan confiable es este contenido?",
@@ -78,11 +78,11 @@ const es = {
     seeExample: "Ver un análisis real →"
   },
   dashboard: {
-    metaTitle: "Contrast AI — Diagnóstico del video",
+    metaTitle: "Contrast AI — Diagnóstico",
     loadErrorTitle: "No pudimos cargar este análisis",
     queryError: "No pudimos consultar el análisis.",
     failedTitle: "El análisis no pudo completarse",
-    failedFallback: "Inténtalo nuevamente con otro video.",
+    failedFallback: "Vuelve a intentarlo.",
     preparingTitle: "Estamos preparando el diagnóstico",
     sourceLabel: "Video analizado",
     voiceSourceLabel: "Grabación de voz",
@@ -91,6 +91,7 @@ const es = {
       leased: "Preparando el análisis",
       transcribing: "Transcribiendo tu audio…",
       analyzing: "Analizando el contenido del video",
+      analyzingRecording: "Analizando tu grabación",
       researching: "Buscando evidencia en fuentes públicas",
       adjudicating: "Contrastando afirmaciones con la evidencia",
       scoring: "Calculando los puntajes",
@@ -115,6 +116,7 @@ const es = {
     signalContent: "Contenido con señales",
     signalUrgency: "Urgencia o presión",
     compositionTitle: "De qué está hecho el video",
+    compositionTitleRecording: "De qué está hecha la grabación",
     compositionPromotion: "Venta o promoción",
     compositionUseful: "Información útil",
     compositionBacked: "Información útil con respaldo",
@@ -127,6 +129,7 @@ const es = {
     contrastTitle: "Contraste de afirmaciones",
     contrastSubtitle: "Comparamos lo dicho con la evidencia disponible.",
     videoSays: "EL VIDEO DICE",
+    recordingSays: "LA GRABACIÓN DICE",
     weFound: "ENCONTRAMOS",
     viewSource: "Ver fuente",
     contextTitle: "Contexto público de la persona creadora",
@@ -178,7 +181,7 @@ export type Dictionary = typeof es;
 const en: Dictionary = {
   header: {
     tagline: "Evidence-based analysis",
-    newAnalysis: "Analyze another video"
+    newAnalysis: "New analysis"
   },
   home: {
     metaTitle: "Contrast AI — How trustworthy is this content?",
@@ -250,7 +253,7 @@ const en: Dictionary = {
     loadErrorTitle: "We couldn't load this analysis",
     queryError: "We couldn't fetch the analysis.",
     failedTitle: "The analysis could not be completed",
-    failedFallback: "Try again with another video.",
+    failedFallback: "Try again.",
     preparingTitle: "We're preparing the diagnosis",
     sourceLabel: "Analyzed video",
     voiceSourceLabel: "Voice recording",
@@ -259,6 +262,7 @@ const en: Dictionary = {
       leased: "Preparing the analysis",
       transcribing: "Transcribing your audio…",
       analyzing: "Analyzing the video content",
+      analyzingRecording: "Analyzing your recording",
       researching: "Searching public sources for evidence",
       adjudicating: "Checking claims against the evidence",
       scoring: "Calculating scores",
@@ -283,6 +287,7 @@ const en: Dictionary = {
     signalContent: "Content with signals",
     signalUrgency: "Urgency or pressure",
     compositionTitle: "What the video is made of",
+    compositionTitleRecording: "What the recording is made of",
     compositionPromotion: "Sales or promotion",
     compositionUseful: "Useful information",
     compositionBacked: "Useful information with backing",
@@ -295,6 +300,7 @@ const en: Dictionary = {
     contrastTitle: "Claim check",
     contrastSubtitle: "We compared what was said with the available evidence.",
     videoSays: "THE VIDEO SAYS",
+    recordingSays: "THE RECORDING SAYS",
     weFound: "WE FOUND",
     viewSource: "View source",
     contextTitle: "The creator's public context",
