@@ -8,7 +8,7 @@ import { HttpError } from '@/lib/http';
  * Fallback documentado: `youtubei.js` (Innertube) si esta deja de funcionar.
  */
 
-const MAX_TRANSCRIPT_CHARS = 100_000; // corta transcripts enormes para no reventar tokens
+const MAX_TRANSCRIPT_CHARS = 100_000; // trunca transcripts enormes para no reventar tokens
 
 export interface YoutubeTranscriptResult {
   videoId: string;
@@ -18,6 +18,8 @@ export interface YoutubeTranscriptResult {
   channelUrl: string | null;
   segments: TranscriptSegment[];
   fullText: string;
+  /** Fracción del transcript original que quedó tras el truncado (1 = completo). */
+  coverage: number;
 }
 
 // Extrae el videoId de todos los formatos comunes de URL de YouTube.
@@ -108,20 +110,50 @@ export async function fetchYoutubeTranscript(url: string): Promise<YoutubeTransc
   }
 
   const div = transcriptTimeDivisor(raw);
-  const segments: TranscriptSegment[] = raw.map((r) => ({
+  const allSegments: TranscriptSegment[] = raw.map((r) => ({
     text: decodeEntities(r.text),
     offsetSeconds: (r.offset ?? 0) / div,
     durationSeconds: (r.duration ?? 0) / div,
   }));
 
-  const fullText = segments.map((s) => s.text).join(' ').replace(/\s+/g, ' ').trim();
-
-  if (fullText.length > MAX_TRANSCRIPT_CHARS) {
-    throw new HttpError(422, 'TRANSCRIPT_TOO_LONG', `El transcript supera el límite de ${MAX_TRANSCRIPT_CHARS} caracteres.`);
-  }
+  const { segments, fullText, coverage } = truncateTranscript(allSegments);
 
   const language = raw[0]?.lang ?? 'es';
   const metadata = await fetchMetadata(videoId);
 
-  return { videoId, ...metadata, language, segments, fullText };
+  return { videoId, ...metadata, language, segments, fullText, coverage };
+}
+
+function joinSegments(segments: TranscriptSegment[]): string {
+  return segments.map((s) => s.text).join(' ').replace(/\s+/g, ' ').trim();
+}
+
+// Trunca por segmentos completos (conserva timestamps coherentes) y reporta la
+// fracción analizada para que el motor la comunique como revisión parcial.
+export function truncateTranscript(
+  segments: TranscriptSegment[],
+  maxChars: number = MAX_TRANSCRIPT_CHARS,
+): { segments: TranscriptSegment[]; fullText: string; coverage: number } {
+  const fullText = joinSegments(segments);
+  if (fullText.length <= maxChars) {
+    return { segments, fullText, coverage: 1 };
+  }
+
+  const kept: TranscriptSegment[] = [];
+  let used = 0;
+  for (const segment of segments) {
+    const length = segment.text.replace(/\s+/g, ' ').trim().length;
+    const next = used + (kept.length > 0 ? 1 : 0) + length;
+    // Siempre conservamos al menos un segmento para no dejar el transcript vacío.
+    if (kept.length > 0 && next > maxChars) break;
+    kept.push(segment);
+    used = next;
+  }
+
+  const truncatedText = joinSegments(kept);
+  return {
+    segments: kept,
+    fullText: truncatedText,
+    coverage: Math.min(1, truncatedText.length / fullText.length),
+  };
 }

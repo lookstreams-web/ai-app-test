@@ -76,7 +76,7 @@ export function buildYoutubeAnalysisInput(
     transcript: {
       language: transcript.language || 'es',
       origin: 'youtube',
-      coverage: 1,
+      coverage: transcript.coverage,
       segments,
     },
     suppliedContext: {

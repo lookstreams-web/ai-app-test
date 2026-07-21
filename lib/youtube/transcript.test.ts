@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseYoutubeId, transcriptTimeDivisor } from '@/lib/youtube/transcript';
+import { parseYoutubeId, transcriptTimeDivisor, truncateTranscript } from '@/lib/youtube/transcript';
 
 describe('YouTube transcript', () => {
   it.each([
@@ -22,5 +22,43 @@ describe('YouTube transcript', () => {
       { offset: 0, duration: 2 },
       { offset: 2, duration: 2.5 },
     ])).toBe(1);
+  });
+});
+
+describe('truncateTranscript', () => {
+  const segment = (text: string, offsetSeconds: number) => ({
+    text,
+    offsetSeconds,
+    durationSeconds: 5,
+  });
+
+  it('no toca transcripts dentro del límite y reporta cobertura completa', () => {
+    const segments = [segment('Primera frase', 0), segment('Segunda frase', 5)];
+    const result = truncateTranscript(segments, 100);
+    expect(result.segments).toHaveLength(2);
+    expect(result.fullText).toBe('Primera frase Segunda frase');
+    expect(result.coverage).toBe(1);
+  });
+
+  it('trunca por segmentos completos y reporta la fracción analizada', () => {
+    const segments = [
+      segment('aaaaaaaaaa', 0),
+      segment('bbbbbbbbbb', 5),
+      segment('cccccccccc', 10),
+      segment('dddddddddd', 15),
+    ];
+    // 10 + 1 + 10 = 21 <= 25; agregar el tercero daría 32.
+    const result = truncateTranscript(segments, 25);
+    expect(result.segments).toHaveLength(2);
+    expect(result.fullText).toBe('aaaaaaaaaa bbbbbbbbbb');
+    expect(result.coverage).toBeCloseTo(21 / 43, 5);
+  });
+
+  it('conserva al menos un segmento aunque supere el límite por sí solo', () => {
+    const segments = [segment('x'.repeat(50), 0), segment('y'.repeat(10), 5)];
+    const result = truncateTranscript(segments, 20);
+    expect(result.segments).toHaveLength(1);
+    expect(result.coverage).toBeGreaterThan(0);
+    expect(result.coverage).toBeLessThan(1);
   });
 });

@@ -15,6 +15,7 @@ describe('buildYoutubeAnalysisInput', () => {
       channelName: 'Canal de prueba',
       channelUrl: 'https://www.youtube.com/@prueba',
       fullText: 'Primera frase Segunda frase',
+      coverage: 1,
       segments: [
         { text: 'Primera frase', offsetSeconds: 0, durationSeconds: 2 },
         { text: 'Segunda frase', offsetSeconds: 2, durationSeconds: 3 },
@@ -43,6 +44,7 @@ describe('buildYoutubeAnalysisInput', () => {
       channelName: 'Test channel',
       channelUrl: null,
       fullText: 'Contenido original',
+      coverage: 0.4,
       segments: [{ text: 'Contenido original', offsetSeconds: 0, durationSeconds: 2 }],
     }, 'en');
 
@@ -53,6 +55,7 @@ describe('buildYoutubeAnalysisInput', () => {
       outputLanguage: 'en',
       timeBudgetMs: 600_000,
     });
+    expect(input.transcript.coverage).toBe(0.4);
   });
 });
 
