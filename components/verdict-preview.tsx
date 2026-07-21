@@ -43,7 +43,7 @@ export function VerdictPreview({ dict, href }: { dict: Dictionary["preview"]; hr
           <Progress color="orange" value={40} />
         </Stack>
         {href ? (
-          <Text c="orange.7" fw={600} size="sm">
+          <Text c="indigo.7" fw={600} size="sm">
             {dict.seeExample}
           </Text>
         ) : null}

@@ -1,0 +1,52 @@
+.pulseAnchor {
+  position: relative;
+  display: flex;
+}
+
+.pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 180px;
+  height: 180px;
+  margin: -90px 0 0 -90px;
+  pointer-events: none;
+}
+
+.pulse::before,
+.pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--mantine-color-indigo-4);
+  background: radial-gradient(circle, rgba(92, 124, 250, 0.08) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0.2);
+  animation: submit-pulse 900ms ease-out;
+}
+
+.pulse::after {
+  animation-delay: 150ms;
+}
+
+@keyframes submit-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  15% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse::before,
+  .pulse::after {
+    animation: none;
+  }
+}

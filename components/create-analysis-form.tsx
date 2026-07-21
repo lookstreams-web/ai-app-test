@@ -4,17 +4,20 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Flex, Paper, Stack, Text, TextInput } from "@mantine/core";
 import type { Dictionary, Locale } from "@/i18n/dictionaries";
+import styles from "./create-analysis-form.module.css";
 
 export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"]; locale: Locale }) {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [pulseKey, setPulseKey] = useState(0);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
+    setPulseKey((key) => key + 1);
     try {
       const response = await fetch("/api/analyses", {
         method: "POST",
@@ -52,9 +55,19 @@ export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"];
                 type="url"
                 value={url}
               />
-              <Button color="orange" loading={submitting} size="md" type="submit">
-                {dict.submit}
-              </Button>
+              <div className={styles.pulseAnchor}>
+                {pulseKey > 0 ? <span aria-hidden className={styles.pulse} key={pulseKey} /> : null}
+                <Button
+                  gradient={{ deg: 135, from: "cyan.7", to: "indigo.7" }}
+                  loading={submitting}
+                  size="md"
+                  style={{ flex: 1 }}
+                  type="submit"
+                  variant="gradient"
+                >
+                  {dict.submit}
+                </Button>
+              </div>
             </Flex>
             {error ? (
               <Alert color="red" title={dict.errorTitle}>

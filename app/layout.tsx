@@ -1,6 +1,8 @@
 import '@mantine/core/styles.css';
 import type { ReactNode } from 'react';
-import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
+import { ColorSchemeScript, MantineProvider, createTheme, mantineHtmlProps } from '@mantine/core';
+
+const theme = createTheme({ primaryColor: 'indigo' });
 
 export const metadata = {
   title: 'AI App Test — Detector de humo',
@@ -15,7 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider>{children}</MantineProvider>
+        <MantineProvider theme={theme}>{children}</MantineProvider>
       </body>
     </html>
   );

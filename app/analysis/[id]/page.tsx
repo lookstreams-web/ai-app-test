@@ -2,6 +2,7 @@ import { Container } from "@mantine/core";
 import { AnalysisDashboard } from "@/components/analysis-dashboard";
 import { SiteHeader } from "@/components/site-header";
 import { getDictionary, resolveLocale } from "@/i18n/resolve";
+import styles from "./page.module.css";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -19,11 +20,13 @@ export default async function AnalysisPage({ params, searchParams }: PageProps) 
   const dict = getDictionary(locale);
 
   return (
-    <>
-      <SiteHeader dict={dict.header} locale={locale} showNewAnalysis />
-      <Container size="lg" pb={64} pt="md">
+    <div className={styles.page}>
+      <div className={styles.navBar}>
+        <SiteHeader dict={dict.header} locale={locale} showNewAnalysis />
+      </div>
+      <Container size="lg" pb={64} pt="md" w="100%">
         <AnalysisDashboard dict={dict.dashboard} id={id} />
       </Container>
-    </>
+    </div>
   );
 }

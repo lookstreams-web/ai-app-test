@@ -10,6 +10,7 @@ import {
   Title
 } from "@mantine/core";
 import { CreateAnalysisForm } from "@/components/create-analysis-form";
+import { ScanPulses } from "@/components/scan-pulses";
 import { SiteHeader } from "@/components/site-header";
 import { StepVisualContrast, StepVisualLink } from "@/components/step-visuals";
 import { VerdictPreview } from "@/components/verdict-preview";
@@ -43,6 +44,7 @@ export default async function HomePage({ searchParams }: PageProps) {
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
+        <ScanPulses />
         <div className={styles.navBar}>
           <SiteHeader dict={dict.header} locale={locale} />
         </div>
@@ -91,7 +93,7 @@ export default async function HomePage({ searchParams }: PageProps) {
           <Divider mb="lg" />
           <Group align="center" gap="md" justify="space-between">
             <div>
-              <Text c="orange.7" fw={800}>
+              <Text c="indigo.7" fw={800}>
                 VEREDICTO
               </Text>
               <Text c="dimmed" size="sm">

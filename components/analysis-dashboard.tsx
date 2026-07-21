@@ -16,6 +16,7 @@ import {
   Text,
   Title
 } from "@mantine/core";
+import { ScanPulses } from "@/components/scan-pulses";
 import type { Dictionary } from "@/i18n/dictionaries";
 
 type DashboardDict = Dictionary["dashboard"];
@@ -257,10 +258,13 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
 
   if (!snapshot) {
     return (
-      <Stack>
-        <Skeleton height={36} width="55%" />
-        <Skeleton height={220} />
-      </Stack>
+      <>
+        <ScanPulses />
+        <Stack>
+          <Skeleton height={36} width="55%" />
+          <Skeleton height={220} />
+        </Stack>
+      </>
     );
   }
 
@@ -274,27 +278,30 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
 
   if (!snapshot.result) {
     return (
-      <Paper withBorder p="xl" radius="lg">
-        <Stack gap="md">
-          <Group justify="space-between">
-            <div>
-              <Text fw={700}>{dict.preparingTitle}</Text>
-              <Text c="dimmed" size="sm">
-                {dict.stages[snapshot.status] ?? snapshot.status}
+      <>
+        <ScanPulses />
+        <Paper withBorder p="xl" radius="lg">
+          <Stack gap="md">
+            <Group justify="space-between">
+              <div>
+                <Text fw={700}>{dict.preparingTitle}</Text>
+                <Text c="dimmed" size="sm">
+                  {dict.stages[snapshot.status] ?? snapshot.status}
+                </Text>
+              </div>
+              <Badge color="indigo" variant="light">
+                {snapshot.progress}%
+              </Badge>
+            </Group>
+            <Progress animated value={snapshot.progress} />
+            {snapshot.error ? (
+              <Text c="dimmed" size="xs">
+                {dict.retryNote}
               </Text>
-            </div>
-            <Badge color="blue" variant="light">
-              {snapshot.progress}%
-            </Badge>
-          </Group>
-          <Progress animated value={snapshot.progress} />
-          {snapshot.error ? (
-            <Text c="dimmed" size="xs">
-              {dict.retryNote}
-            </Text>
-          ) : null}
-        </Stack>
-      </Paper>
+            ) : null}
+          </Stack>
+        </Paper>
+      </>
     );
   }
 
@@ -446,22 +453,22 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
           </Text>
           <Stack gap="sm" mt="md">
             <Metric
-              color="blue"
+              color="indigo"
               label={dict.compositionPromotion}
               value={composition.venta_o_promocion_pct}
             />
             <Metric
-              color="blue"
+              color="indigo"
               label={dict.compositionUseful}
               value={composition.informacion_util_pct}
             />
             <Metric
-              color="blue"
+              color="indigo"
               label={dict.compositionBacked}
               value={composition.informacion_util_con_respaldo_pct}
             />
             <Metric
-              color="blue"
+              color="indigo"
               label={dict.compositionUrgency}
               value={composition.urgencia_o_presion_pct}
             />

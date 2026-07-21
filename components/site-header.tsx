@@ -19,13 +19,13 @@ export function SiteHeader({
     <Container size="lg" py="md">
       <Group justify="space-between">
         <Anchor component={Link} href={homeHref} underline="never">
-          <Text c={onDark ? "orange.5" : "orange.7"} fw={800} size="lg">
+          <Text c={onDark ? "indigo.3" : "indigo.7"} fw={800} size="lg">
             VEREDICTO
           </Text>
         </Anchor>
         <Group gap="sm">
           {showNewAnalysis ? (
-            <Button color="orange" component={Link} href={homeHref} size="xs" variant="light">
+            <Button color="indigo" component={Link} href={homeHref} size="xs" variant="light">
               {dict.newAnalysis}
             </Button>
           ) : null}
