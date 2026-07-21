@@ -321,9 +321,13 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
     return (
       <>
         <ScanPulses />
-        <Stack>
-          <Skeleton height={36} width="55%" />
-          <Skeleton height={220} />
+        <Stack gap="lg">
+          <div>
+            <Skeleton height={10} width={96} />
+            <Skeleton height={22} mt={10} width="45%" />
+            <Skeleton height={14} mt={10} width={140} />
+          </div>
+          <Skeleton height={240} radius="lg" />
         </Stack>
       </>
     );
@@ -376,10 +380,22 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
     result.fuentes_principales.map((source) => [source.id, source])
   );
   const provisional = diagnosis.estado_de_la_revision === "parcial";
-  const hasPublicContext =
-    publicContext.lo_positivo_comprobado.length > 0 ||
-    publicContext.alertas_comprobadas.length > 0 ||
-    publicContext.comentarios_que_solo_son_opiniones.length > 0;
+  const contextCards = [
+    { title: dict.contextPositive, color: "green", items: publicContext.lo_positivo_comprobado },
+    { title: dict.contextAlerts, color: "orange", items: publicContext.alertas_comprobadas },
+    {
+      title: dict.contextOpinions,
+      color: "gray",
+      items: publicContext.comentarios_que_solo_son_opiniones
+    }
+  ].filter((card) => card.items.length > 0);
+  const hasPublicContext = contextCards.length > 0;
+  const claims = diagnosis.afirmaciones;
+  const allClaimsUnverified =
+    claims.respaldadas_pct === 0 &&
+    claims.incompletas_o_sin_contexto_pct === 0 &&
+    claims.incorrectas_segun_fuentes_pct === 0 &&
+    claims.sin_comprobar_pct > 0;
 
   return (
     <Stack gap="xl">
@@ -477,29 +493,27 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
             {dict.claimsTitle}
           </Text>
           <Stack gap="sm" mt="md">
-            <Metric
-              color="green"
-              label={dict.claimSupported}
-              value={diagnosis.afirmaciones.respaldadas_pct}
-            />
-            <Metric
-              color="yellow"
-              label={dict.claimNoContext}
-              value={diagnosis.afirmaciones.incompletas_o_sin_contexto_pct}
-            />
-            <Metric
-              color="red"
-              label={dict.claimMismatch}
-              value={diagnosis.afirmaciones.incorrectas_segun_fuentes_pct}
-            />
-            <Metric
-              color="gray"
-              label={dict.claimUnverified}
-              value={diagnosis.afirmaciones.sin_comprobar_pct}
-            />
+            {allClaimsUnverified ? (
+              <Metric color="gray" label={dict.claimUnverified} value={claims.sin_comprobar_pct} />
+            ) : (
+              <>
+                <Metric color="green" label={dict.claimSupported} value={claims.respaldadas_pct} />
+                <Metric
+                  color="yellow"
+                  label={dict.claimNoContext}
+                  value={claims.incompletas_o_sin_contexto_pct}
+                />
+                <Metric
+                  color="red"
+                  label={dict.claimMismatch}
+                  value={claims.incorrectas_segun_fuentes_pct}
+                />
+                <Metric color="gray" label={dict.claimUnverified} value={claims.sin_comprobar_pct} />
+              </>
+            )}
           </Stack>
           <Text c="dimmed" mt="md" size="xs">
-            {diagnosis.afirmaciones.explicacion}
+            {claims.explicacion}
           </Text>
         </Paper>
       </SimpleGrid>
@@ -657,39 +671,24 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
         <div>
           <Title order={2}>{dict.contextTitle}</Title>
           {publicContext.que_revisamos.length ? (
-            <Group gap="xs" mt="xs">
-              <Text c="dimmed" size="sm">
-                {dict.contextReviewed}
-              </Text>
-              {publicContext.que_revisamos.map((place) => (
-                <Badge color="gray" key={place} variant="light">
-                  {humanize(place)}
-                </Badge>
-              ))}
-            </Group>
+            <Text c="dimmed" mt="xs" size="sm">
+              {dict.contextReviewed}{" "}
+              {publicContext.que_revisamos
+                .map((place) => place.replaceAll("_", " "))
+                .join(" · ")}
+            </Text>
           ) : null}
-          <SimpleGrid cols={{ base: 1, md: 3 }} mt="md">
-            <InsightCard
-              color="green"
-              dict={dict}
-              items={publicContext.lo_positivo_comprobado}
-              sources={sources}
-              title={dict.contextPositive}
-            />
-            <InsightCard
-              color="orange"
-              dict={dict}
-              items={publicContext.alertas_comprobadas}
-              sources={sources}
-              title={dict.contextAlerts}
-            />
-            <InsightCard
-              color="gray"
-              dict={dict}
-              items={publicContext.comentarios_que_solo_son_opiniones}
-              sources={sources}
-              title={dict.contextOpinions}
-            />
+          <SimpleGrid cols={{ base: 1, md: contextCards.length }} mt="md">
+            {contextCards.map((card) => (
+              <InsightCard
+                color={card.color}
+                dict={dict}
+                items={card.items}
+                key={card.title}
+                sources={sources}
+                title={card.title}
+              />
+            ))}
           </SimpleGrid>
           <Text c="dimmed" mt="md" size="xs">
             {publicContext.explicacion}
