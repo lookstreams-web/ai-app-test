@@ -92,6 +92,26 @@ curl -X POST http://localhost:3000/api/analyses \
 
 Consulta el progreso con `GET /api/analyses/{id}`.
 
+El snapshot incluye una referencia segura al video, sin exponer el transcript ni el
+reporte interno:
+
+```json
+{
+  "source": {
+    "url": "https://www.youtube.com/watch?v=VIDEO_ID",
+    "title": "Título del video",
+    "channel": {
+      "name": "Nombre del canal",
+      "url": "https://www.youtube.com/@canal"
+    }
+  }
+}
+```
+
+El campo `error` solo contiene un error terminal cuando `status` es `failed`. Durante
+un reintento (`queued` u otro estado activo) se devuelve `null`, aunque internamente se
+conserve el último error para observabilidad.
+
 `outputLanguage` es opcional, acepta `es` o `en` y usa `es` de manera predeterminada. Cambia el idioma de los textos generados y de las plantillas públicas; las claves JSON y los valores enum permanecen estables para la UI.
 
 Para una prueba local completa sin depender todavía del rate limit de la API web, inicia el worker y ejecuta en otra terminal:

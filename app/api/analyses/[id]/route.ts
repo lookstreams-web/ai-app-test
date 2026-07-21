@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { buildAnalysisError, buildSourceSnapshot } from '@/lib/analysis-snapshot';
 import { HttpError, toErrorResponse } from '@/lib/http';
 
 export const runtime = 'nodejs';
@@ -11,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const admin = createAdminClient();
     const { data, error } = await admin
       .from('analyses')
-      .select('id, status, progress, public_diagnosis, legacy_v1_report, last_error, created_at, completed_at')
+      .select('id, status, progress, source:input->source, public_diagnosis, legacy_v1_report, last_error, created_at, completed_at')
       .eq('id', id)
       .maybeSingle();
 
@@ -22,9 +23,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       id: data.id,
       status: data.status,
       progress: data.progress,
+      source: buildSourceSnapshot(data.source),
       result: data.public_diagnosis,
       legacyResult: data.legacy_v1_report,
-      error: data.last_error ? { code: 'ANALYSIS_FAILED', message: data.last_error } : null,
+      error: buildAnalysisError(data.status, data.last_error),
       createdAt: data.created_at,
       completedAt: data.completed_at,
     });
