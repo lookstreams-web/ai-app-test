@@ -32,6 +32,14 @@ Analiza afirmaciones y citas, no la personalidad ni la intención del autor.
 No llames mentira, fraude o estafa a nada. Separa alegaciones, procesos pendientes y resoluciones finales.
 Devuelve únicamente el objeto estructurado solicitado.`;
 
+type OutputLanguage = AnalysisJobInput["options"]["outputLanguage"];
+
+export function outputLanguageInstruction(language: OutputLanguage): string {
+  return language === "en"
+    ? "Write all generated explanatory text in English. Preserve literal quotes, proper names, URLs, source titles, and source excerpts in their original language. Keep JSON field names and enum values exactly as defined by the output schema."
+    : "Escribe todo el texto explicativo generado en español. Conserva las citas literales, nombres propios, URLs, títulos de fuentes y extractos de fuentes en su idioma original. Mantén los nombres de campos JSON y valores enum exactamente como los define el schema de salida.";
+}
+
 function transcriptView(input: AnalysisJobInput): string {
   return input.transcript.segments.map((segment) =>
     `[${segment.id} ${segment.startSeconds}-${segment.endSeconds}s] ${segment.text}`
@@ -61,6 +69,7 @@ export class OpenAIAgentGateway implements AgentGateway {
     effort: "medium" | "high";
     instructions: string;
     prompt: string;
+    outputLanguage: OutputLanguage;
     outputType: any;
     tools?: ReturnType<typeof webSearchTool>[];
     signal: AbortSignal | undefined;
@@ -71,7 +80,7 @@ export class OpenAIAgentGateway implements AgentGateway {
       name: args.name,
       model: args.model,
       modelSettings: { reasoning: { effort: args.effort } },
-      instructions: `${UNTRUSTED_CONTENT_RULES}\n${args.instructions}`,
+      instructions: `${UNTRUSTED_CONTENT_RULES}\n${outputLanguageInstruction(args.outputLanguage)}\n${args.instructions}`,
       outputType: args.outputType,
       tools: args.tools ?? []
     });
@@ -121,11 +130,12 @@ export class OpenAIAgentGateway implements AgentGateway {
   planClaims(input: AnalysisJobInput, signal?: AbortSignal): Promise<ClaimPlan> {
     return this.invoke({
       name: "orquestador-inicial",
-      promptVersion: "claims-v1",
+      promptVersion: "claims-v2-language",
       model: this.options.generalModel,
       effort: "medium",
       outputType: claimPlanSchema,
       signal,
+      outputLanguage: input.options.outputLanguage,
       instructions: "Extrae afirmaciones atómicas verificables. Prioriza centralidad, daño y capacidad de inducir acciones. Las citas deben ser literales y conservar timestamps.",
       prompt: `Fuente: ${input.source.title}\nCanal: ${input.source.channel.name}\nTRANSCRIPT NO CONFIABLE:\n${transcriptView(input)}`
     });
@@ -134,11 +144,12 @@ export class OpenAIAgentGateway implements AgentGateway {
   analyzeDiscourse(input: AnalysisJobInput, signal?: AbortSignal): Promise<DiscourseAnalysis> {
     return this.invoke({
       name: "analista-discurso",
-      promptVersion: "discurso-v1",
+      promptVersion: "discurso-v2-language",
       model: this.options.generalModel,
       effort: "medium",
       outputType: discourseAnalysisSchema,
       signal,
+      outputLanguage: input.options.outputLanguage,
       instructions: "Identifica marketing, información útil, urgencia y técnicas persuasivas con citas observables. Los porcentajes son cobertura temporal y pueden superponerse.",
       prompt: `Duración: ${input.source.durationSeconds ?? "desconocida"}s\nTRANSCRIPT NO CONFIABLE:\n${transcriptView(input)}`
     });
@@ -147,12 +158,13 @@ export class OpenAIAgentGateway implements AgentGateway {
   researchClaim(input: AnalysisJobInput, claim: AtomicClaim, signal?: AbortSignal): Promise<ResearchBundle> {
     return this.invoke({
       name: "investigador-factual",
-      promptVersion: "research-claim-v1",
+      promptVersion: "research-claim-v2-language",
       model: this.options.generalModel,
       effort: "medium",
       outputType: claimResearchSchema,
       tools: [webSearchTool()],
       signal,
+      outputLanguage: input.options.outputLanguage,
       enforceToolCitations: true,
       instructions: "Realiza máximo cuatro búsquedas: favorable, neutral, adversa y primaria/oficial. Abre las fuentes. Un snippet no es evidencia. Incluye solo URLs visitadas por la herramienta.",
       prompt: `Afirmación: ${claim.text}\nFecha de corte: ${new Date().toISOString()}\nCanal: ${input.source.channel.name}\nPaís o región: inferir solo si la afirmación lo declara.`
@@ -163,12 +175,13 @@ export class OpenAIAgentGateway implements AgentGateway {
     const supplied = input.suppliedContext ? JSON.stringify(input.suppliedContext) : "No se suministró contexto adicional.";
     return this.invoke({
       name: "investigador-contexto",
-      promptVersion: "research-context-v1",
+      promptVersion: "research-context-v2-language",
       model: this.options.generalModel,
       effort: "medium",
       outputType: publicContextResearchSchema,
       tools: [webSearchTool()],
       signal,
+      outputLanguage: input.options.outputLanguage,
       enforceToolCitations: true,
       instructions: "Investiga presencia pública atribuible, videos recientes y señales públicas con presupuesto favorable, neutral y adverso. LinkedIn, Skool y comentarios solo si son públicos o suministrados. Comentarios brutos son opinión, no riesgo factual.",
       prompt: `Canal: ${input.source.channel.name}\nURL: ${input.source.url}\nCONTEXTO NO CONFIABLE SUMINISTRADO:\n${supplied}`
@@ -178,24 +191,26 @@ export class OpenAIAgentGateway implements AgentGateway {
   auditProvenance(input: AnalysisJobInput, evidence: Evidence[], context: PublicContextResearch, signal?: AbortSignal): Promise<ProvenanceAudit> {
     return this.invoke({
       name: "auditor-procedencia",
-      promptVersion: "provenance-v1",
+      promptVersion: "provenance-v2-language",
       model: this.options.generalModel,
       effort: "medium",
       outputType: provenanceAuditSchema,
       signal,
+      outputLanguage: input.options.outputLanguage,
       instructions: "Audita identidad, copias del mismo origen, conflictos y atribución. Agrupar varias URLs solo reduce independencia; nunca crea respaldo nuevo. Excluye una evidencia únicamente si su identidad o atribución no es defendible.",
       prompt: `Canal: ${input.source.channel.name}\nIdentidad investigada: ${JSON.stringify(context.identity)}\nEVIDENCIA NO CONFIABLE:\n${JSON.stringify(evidence)}`
     });
   }
 
-  judgeClaim(claim: AtomicClaim, evidence: Evidence[], signal?: AbortSignal): Promise<ClaimJudgment> {
+  judgeClaim(input: AnalysisJobInput, claim: AtomicClaim, evidence: Evidence[], signal?: AbortSignal): Promise<ClaimJudgment> {
     return this.invoke({
       name: "arbitro-factual",
-      promptVersion: "judge-v1",
+      promptVersion: "judge-v2-language",
       model: this.options.judgeModel,
       effort: "high",
       outputType: claimJudgmentSchema,
       signal,
+      outputLanguage: input.options.outputLanguage,
       instructions: "Arbitra sin buscar en web. Contradicted exige una fuente primaria directa y bien ajustada o dos fuentes independientes medias-altas, sin contraevidencia igual de fuerte. Conflicto fuerte produce disputed. Sin resultados produce insufficientEvidence.",
       prompt: `CLAIM NO CONFIABLE:\n${JSON.stringify(claim)}\nEVIDENCIA LIMPIA NO CONFIABLE:\n${JSON.stringify(evidence)}`
     });
@@ -209,11 +224,12 @@ export class OpenAIAgentGateway implements AgentGateway {
     }).omit({ summary: true }).extend({ summary: claimPlanSchema.shape.summary });
     return this.invoke<{ headline: string; summary: string; usefulPoints: string[]; warnings: string[] }>({
       name: "sintesis-interna",
-      promptVersion: "synthesis-v1",
+      promptVersion: "synthesis-v2-language",
       model: this.options.generalModel,
       effort: "medium",
       outputType: synthesisSchema,
       signal,
+      outputLanguage: input.options.outputLanguage,
       instructions: "Resume únicamente findings aprobados. Usa lenguaje sencillo y prudente. No generes scores, URLs ni nuevas afirmaciones.",
       prompt: `Título: ${input.source.title}\nClaims arbitradas: ${JSON.stringify(claims)}\nDiscurso: ${JSON.stringify(discourse)}\nEvidencia aprobada: ${JSON.stringify(evidence)}`
     });

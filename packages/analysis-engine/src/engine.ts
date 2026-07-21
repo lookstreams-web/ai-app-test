@@ -37,8 +37,14 @@ export interface AnalysisRunOptions {
   onProgress?: (stage: ProgressStage, progress: number) => Promise<void> | void;
 }
 
-const defaultDiscourse = () => discourseAnalysisSchema.parse({
-  summary: "El análisis del discurso no pudo completarse.",
+type OutputLanguage = AnalysisJobInput["options"]["outputLanguage"];
+
+function localized(language: OutputLanguage, spanish: string, english: string): string {
+  return language === "en" ? english : spanish;
+}
+
+const defaultDiscourse = (language: OutputLanguage) => discourseAnalysisSchema.parse({
+  summary: localized(language, "El análisis del discurso no pudo completarse.", "The discourse analysis could not be completed."),
   marketingPromotionPct: 0,
   candidateValuePct: 0,
   urgencyExposurePct: 0,
@@ -48,7 +54,7 @@ const defaultDiscourse = () => discourseAnalysisSchema.parse({
   findings: []
 });
 
-const defaultContext = () => publicContextResearchSchema.parse({
+const defaultContext = (language: OutputLanguage) => publicContextResearchSchema.parse({
   identity: { status: "notFound", confidence: 0, attributionSignals: [] },
   reviewedPlaces: [],
   positiveCorroborated: [],
@@ -63,7 +69,7 @@ const defaultContext = () => publicContextResearchSchema.parse({
   audienceEvidenceRiskScore: null,
   audienceEvidenceCoverage: 0,
   evidence: [],
-  limitations: ["La investigación de contexto público no pudo completarse."]
+  limitations: [localized(language, "La investigación de contexto público no pudo completarse.", "The public-context research could not be completed.")]
 });
 
 export function splitAnalysisInput(input: AnalysisJobInput, maxChars = 24_000): AnalysisJobInput[] {
@@ -104,8 +110,8 @@ function weightedAverage(items: DiscourseAnalysis[], field: keyof Pick<Discourse
   return items.reduce((sum, item) => sum + item[field], 0) / items.length;
 }
 
-function mergeDiscourse(items: DiscourseAnalysis[]): DiscourseAnalysis {
-  if (!items.length) return defaultDiscourse();
+function mergeDiscourse(items: DiscourseAnalysis[], language: OutputLanguage): DiscourseAnalysis {
+  if (!items.length) return defaultDiscourse(language);
   return discourseAnalysisSchema.parse({
     summary: items.map((item) => item.summary).join(" "),
     marketingPromotionPct: weightedAverage(items, "marketingPromotionPct"),
@@ -174,6 +180,7 @@ export class DeterministicAnalysisEngine {
 
   async analyze(rawInput: AnalysisJobInput, runOptions: AnalysisRunOptions = {}): Promise<AnalysisArtifacts> {
     const input = analysisJobInputSchema.parse(rawInput);
+    const language = input.options.outputLanguage;
     const runId = randomUUID();
     let partialFailure = false;
     const progress = async (stage: ProgressStage, value: number) => runOptions.onProgress?.(stage, value);
@@ -182,13 +189,13 @@ export class DeterministicAnalysisEngine {
     const chunks = splitAnalysisInput(input, this.options.maxTranscriptChunkChars);
     const [planResult, discourseResult, contextResult] = await Promise.allSettled([
       Promise.all(chunks.map((chunk) => this.gateway.planClaims(chunk, runOptions.signal))).then(mergePlans),
-      Promise.all(chunks.map((chunk) => this.gateway.analyzeDiscourse(chunk, runOptions.signal))).then(mergeDiscourse),
-      input.options.publicContext ? this.gateway.researchContext(input, runOptions.signal) : Promise.resolve(defaultContext())
+      Promise.all(chunks.map((chunk) => this.gateway.analyzeDiscourse(chunk, runOptions.signal))).then((items) => mergeDiscourse(items, language)),
+      input.options.publicContext ? this.gateway.researchContext(input, runOptions.signal) : Promise.resolve(defaultContext(language))
     ]);
     if (planResult.status === "rejected") throw planResult.reason;
     const plan = planResult.value;
-    const discourse = discourseResult.status === "fulfilled" ? discourseResult.value : (partialFailure = true, defaultDiscourse());
-    const context = contextResult.status === "fulfilled" ? contextResult.value : (partialFailure = true, defaultContext());
+    const discourse = discourseResult.status === "fulfilled" ? discourseResult.value : (partialFailure = true, defaultDiscourse(language));
+    const context = contextResult.status === "fulfilled" ? contextResult.value : (partialFailure = true, defaultContext(language));
 
     const selected = plan.claims
       .map((claim) => ({ claim, weight: calculateClaimWeight(claim) }))
@@ -198,12 +205,22 @@ export class DeterministicAnalysisEngine {
     await progress("researching", 35);
     const limiter = pLimit(this.options.claimConcurrency);
     const researchResults = await Promise.all(selected.map(({ claim }) => limiter(async () => {
-      if (!input.options.webResearch) return { claimId: claim.id, searchedQueries: [], evidence: [], limitations: ["La investigación web fue desactivada."] };
+      if (!input.options.webResearch) return {
+        claimId: claim.id,
+        searchedQueries: [],
+        evidence: [],
+        limitations: [localized(language, "La investigación web fue desactivada.", "Web research was disabled.")]
+      };
       try {
         return bindResearchToClaim(claim, await this.gateway.researchClaim(input, claim, runOptions.signal));
       } catch {
         partialFailure = true;
-        return { claimId: claim.id, searchedQueries: [], evidence: [], limitations: ["La investigación web de esta afirmación falló."] };
+        return {
+          claimId: claim.id,
+          searchedQueries: [],
+          evidence: [],
+          limitations: [localized(language, "La investigación web de esta afirmación falló.", "Web research for this claim failed.")]
+        };
       }
     })));
 
@@ -227,18 +244,30 @@ export class DeterministicAnalysisEngine {
     await progress("adjudicating", 60);
     const judgments = await Promise.all(selected.map(async ({ claim }) => {
       const evidence = evidenceByClaim.get(claim.id) ?? [];
-      if (!evidence.length) return fallbackJudgment(claim, "No encontramos evidencia suficiente para comprobar esta afirmación.");
+      if (!evidence.length) return fallbackJudgment(claim, localized(
+        language,
+        "No encontramos evidencia suficiente para comprobar esta afirmación.",
+        "We did not find enough evidence to verify this claim."
+      ));
       try {
-        const proposed = await this.gateway.judgeClaim(claim, evidence, runOptions.signal);
+        const proposed = await this.gateway.judgeClaim(input, claim, evidence, runOptions.signal);
         return enforceAdjudicationThresholds(proposed, evidence);
       } catch {
         partialFailure = true;
-        return fallbackJudgment(claim, "La revisión de evidencia no pudo completarse.");
+        return fallbackJudgment(claim, localized(
+          language,
+          "La revisión de evidencia no pudo completarse.",
+          "The evidence review could not be completed."
+        ));
       }
     }));
 
     const claims: ScoredClaim[] = selected.map(({ claim, weight }, index) => {
-      const judgment = judgments[index] ?? fallbackJudgment(claim, "No se obtuvo un veredicto.");
+      const judgment = judgments[index] ?? fallbackJudgment(claim, localized(
+        language,
+        "No se obtuvo un veredicto.",
+        "No judgment was produced."
+      ));
       return {
         ...claim,
         weight,
@@ -269,12 +298,23 @@ export class DeterministicAnalysisEngine {
       synthesis = await this.gateway.synthesize(input, claims, discourse, allEvidence.filter((item) => approvedIds.has(item.id)), runOptions.signal);
     } catch {
       partialFailure = true;
-      synthesis = {
-        headline: "Revisión del contenido y sus afirmaciones principales",
-        summary: claims.length ? "Revisamos las afirmaciones principales con la evidencia disponible. Lee los contrastes antes de decidir." : "No hubo información suficiente para completar el análisis.",
-        usefulPoints: [],
-        warnings: claims.filter((claim) => claim.outcome === "contradicted").map((claim) => claim.explanation).slice(0, 3)
-      };
+      synthesis = language === "en"
+        ? {
+            headline: "Review of the content and its main claims",
+            summary: claims.length
+              ? "We reviewed the main claims using the available evidence. Read the comparisons before deciding."
+              : "There was not enough information to complete the analysis.",
+            usefulPoints: [],
+            warnings: claims.filter((claim) => claim.outcome === "contradicted").map((claim) => claim.explanation).slice(0, 3)
+          }
+        : {
+            headline: "Revisión del contenido y sus afirmaciones principales",
+            summary: claims.length
+              ? "Revisamos las afirmaciones principales con la evidencia disponible. Lee los contrastes antes de decidir."
+              : "No hubo información suficiente para completar el análisis.",
+            usefulPoints: [],
+            warnings: claims.filter((claim) => claim.outcome === "contradicted").map((claim) => claim.explanation).slice(0, 3)
+          };
     }
 
     const highImpact = claims.some((claim) =>

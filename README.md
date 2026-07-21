@@ -87,16 +87,38 @@ Prueba rápida:
 ```bash
 curl -X POST http://localhost:3000/api/analyses \
   -H "Content-Type: application/json" \
-  -d '{"sourceType":"youtube","url":"https://www.youtube.com/watch?v=VIDEO_ID"}'
+  -d '{"sourceType":"youtube","url":"https://www.youtube.com/watch?v=VIDEO_ID","outputLanguage":"en"}'
 ```
 
 Consulta el progreso con `GET /api/analyses/{id}`.
+
+El snapshot incluye una referencia segura al video, sin exponer el transcript ni el
+reporte interno:
+
+```json
+{
+  "source": {
+    "url": "https://www.youtube.com/watch?v=VIDEO_ID",
+    "title": "Título del video",
+    "channel": {
+      "name": "Nombre del canal",
+      "url": "https://www.youtube.com/@canal"
+    }
+  }
+}
+```
+
+El campo `error` solo contiene un error terminal cuando `status` es `failed`. Durante
+un reintento (`queued` u otro estado activo) se devuelve `null`, aunque internamente se
+conserve el último error para observabilidad.
+
+`outputLanguage` es opcional, acepta `es` o `en` y usa `es` de manera predeterminada. Cambia el idioma de los textos generados y de las plantillas públicas; las claves JSON y los valores enum permanecen estables para la UI.
 
 Para una prueba local completa sin depender todavía del rate limit de la API web, inicia el worker y ejecuta en otra terminal:
 
 ```bash
 pnpm dev:worker
-pnpm test:youtube -- "https://www.youtube.com/watch?v=VIDEO_ID"
+pnpm test:youtube -- "https://www.youtube.com/watch?v=VIDEO_ID" --lang en
 ```
 
 El comando muestra las etapas, el progreso y el diagnóstico público final. Encola directamente en el Supabase configurado en `.env`; úsalo solo para desarrollo.
@@ -111,13 +133,33 @@ La cola usa:
 
 ## Railway
 
-El archivo `railway.json` compila y arranca `@motor/analysis-worker`.
+Despliega dos servicios desde este mismo repositorio y la rama `main`:
 
-- Inicio: `pnpm --filter @motor/analysis-worker start`
-- Salud: `GET /health`
-- Preparación: `GET /ready`
+| Servicio | Archivo de configuración | Inicio | Salud | Dominio público |
+| --- | --- | --- | --- | --- |
+| `motor-web` | `/railway.web.json` | `pnpm start` | `GET /api/health` | Sí |
+| `motor-worker` | `/railway.json` | `pnpm --filter @motor/analysis-worker start` | `GET /health` | No |
 
-Configura las variables de `.env.example` en Railway y aplica primero la migración de Supabase. Este repositorio no despliega ni escribe secretos automáticamente.
+En Railway, establece el **Config file path** de cada servicio con la ruta indicada en la tabla. Ambos servicios usan `/` como root directory.
+
+Variables mínimas para `motor-web`:
+
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- `RATE_LIMIT_SALT`
+- `RATE_LIMIT_MAX=5`
+- `RATE_LIMIT_WINDOW_SECONDS=3600`
+
+Variables mínimas para `motor-worker`:
+
+- `OPENAI_API_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- Todas las variables de motor y worker incluidas en `.env.example`
+
+Railway inyecta `PORT` automáticamente. No copies `PORT=3001` al entorno desplegado. Genera un dominio público solo para `motor-web`; `motor-worker` procesa la cola y no necesita recibir tráfico público.
+
+Configura los secretos en Railway y aplica primero la migración de Supabase. Nunca subas el archivo `.env` al repositorio.
 
 ## Resultados
 

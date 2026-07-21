@@ -4,6 +4,7 @@ import type { YoutubeTranscriptResult } from '@/lib/youtube/transcript';
 export function buildYoutubeAnalysisInput(
   sourceUrl: string,
   transcript: YoutubeTranscriptResult,
+  outputLanguage: 'es' | 'en' = 'es',
 ): AnalysisJobInput {
   const segments = transcript.segments.map((segment, index) => ({
     id: `segment-${index + 1}`,
@@ -36,6 +37,9 @@ export function buildYoutubeAnalysisInput(
       declaredLinks: [],
       recentVideos: [],
       comments: [],
+    },
+    options: {
+      outputLanguage,
     },
   });
 }

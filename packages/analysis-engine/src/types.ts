@@ -63,7 +63,7 @@ export interface AgentGateway {
   researchClaim(input: AnalysisJobInput, claim: AtomicClaim, signal?: AbortSignal): Promise<ResearchBundle>;
   researchContext(input: AnalysisJobInput, signal?: AbortSignal): Promise<PublicContextResearch>;
   auditProvenance(input: AnalysisJobInput, evidence: Evidence[], context: PublicContextResearch, signal?: AbortSignal): Promise<ProvenanceAudit>;
-  judgeClaim(claim: AtomicClaim, evidence: Evidence[], signal?: AbortSignal): Promise<ClaimJudgment>;
+  judgeClaim(input: AnalysisJobInput, claim: AtomicClaim, evidence: Evidence[], signal?: AbortSignal): Promise<ClaimJudgment>;
   synthesize(input: AnalysisJobInput, claims: ScoredClaim[], discourse: DiscourseAnalysis, evidence: Evidence[], signal?: AbortSignal): Promise<{ headline: string; summary: string; usefulPoints: string[]; warnings: string[] }>;
   readonly invocations: AgentInvocation[];
 }

@@ -5,10 +5,11 @@ La app Next.js se encarga de recibir el enlace, obtener el transcript y crear el
 ## Flujo
 
 ```text
-POST /api/analyses { sourceType: "youtube", url }
+POST /api/analyses { sourceType: "youtube", url, outputLanguage?: "es" | "en" }
   → rate limit por IP hasheada
   → youtube-transcript + oEmbed
   → buildYoutubeAnalysisInput()
+  → propaga options.outputLanguage a todos los agentes y adaptadores
   → validación con @motor/analysis-contracts
   → INSERT analyses(input, status = queued)
   → analysis-worker reserva el trabajo
@@ -23,7 +24,8 @@ POST /api/analyses { sourceType: "youtube", url }
 - La API no ejecuta OpenAI dentro del request. Solo prepara y encola el trabajo para evitar timeouts y reintentos duplicados.
 - La tabla `analyses` pertenece a la migración del motor. La migración `0001_init.sql` de la entrada web solo añade el rate limit.
 - El rate limit usa un advisory lock por identificador para que la operación `count + insert` sea atómica ante solicitudes simultáneas.
-- `GET /api/analyses/{id}` no expone `internal_report_v2`; entrega únicamente el diagnóstico público y el adaptador v1.
+- `GET /api/analyses/{id}` no expone `internal_report_v2` ni el transcript; entrega el diagnóstico público, el adaptador v1 y `source` con URL, título y canal para identificar y enlazar el video.
+- El campo público `error` solo se completa cuando el estado es `failed`. Los errores internos conservados durante reintentos no se presentan como fallos terminales.
 
 ## Servicios en Railway
 

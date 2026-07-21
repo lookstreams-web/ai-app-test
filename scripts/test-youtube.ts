@@ -7,9 +7,16 @@ import { fetchYoutubeTranscript } from '@/lib/youtube/transcript';
 loadDotEnv({ path: '.env', quiet: true });
 
 async function main(): Promise<void> {
-const videoUrl = process.argv.slice(2).find((argument) => argument !== '--');
+const args = process.argv.slice(2).filter((argument) => argument !== '--');
+const videoUrl = args.find((argument) => /^https?:\/\//i.test(argument));
+const languageIndex = args.indexOf('--lang');
+const outputLanguage = languageIndex >= 0 ? args[languageIndex + 1] : 'es';
 if (!videoUrl) {
-  console.error('Uso: pnpm test:youtube -- <URL_DE_YOUTUBE>');
+  console.error('Uso: pnpm test:youtube -- <URL_DE_YOUTUBE> [--lang es|en]');
+  process.exit(2);
+}
+if (outputLanguage !== 'es' && outputLanguage !== 'en') {
+  console.error('El idioma debe ser es o en.');
   process.exit(2);
 }
 
@@ -21,10 +28,11 @@ if (!supabaseUrl || !supabaseKey) {
 
 console.log('1/4 Obteniendo transcript de YouTube...');
 const transcript = await fetchYoutubeTranscript(videoUrl);
-const input = buildYoutubeAnalysisInput(videoUrl, transcript);
+const input = buildYoutubeAnalysisInput(videoUrl, transcript, outputLanguage);
 console.log(`2/4 Transcript listo: ${input.transcript.segments.length} segmentos, ${Math.round(input.source.durationSeconds ?? 0)} s.`);
 console.log(`    Video: ${input.source.title}`);
 console.log(`    Canal: ${input.source.channel.name}`);
+console.log(`    Idioma de salida: ${input.options.outputLanguage}`);
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: { persistSession: false, autoRefreshToken: false },
