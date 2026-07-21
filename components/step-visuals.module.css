@@ -1,0 +1,92 @@
+/* Indicador rojo pulsante, mismo lenguaje visual que el formulario de grabación. */
+.recDot {
+  position: relative;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--mantine-color-red-6);
+  flex: none;
+}
+
+.recDot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--mantine-color-red-5);
+  opacity: 0;
+  animation: step-rec-pulse 1400ms ease-out infinite;
+}
+
+@keyframes step-rec-pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.wave span {
+  flex: none;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--mantine-color-indigo-4);
+  animation: step-wave 1100ms ease-in-out infinite alternate;
+}
+
+.wave span:nth-child(4n + 1) {
+  height: 14px;
+  animation-delay: 0ms;
+}
+
+.wave span:nth-child(4n + 2) {
+  height: 22px;
+  animation-delay: 150ms;
+}
+
+.wave span:nth-child(4n + 3) {
+  height: 10px;
+  animation-delay: 300ms;
+}
+
+.wave span:nth-child(4n) {
+  height: 18px;
+  animation-delay: 450ms;
+}
+
+@keyframes step-wave {
+  from {
+    transform: scaleY(0.55);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Línea de texto simulada en la mini-tarjeta de contraste. */
+.skeleton {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--mantine-color-gray-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recDot::after,
+  .wave span {
+    animation: none;
+  }
+}

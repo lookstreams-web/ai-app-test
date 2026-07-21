@@ -18,10 +18,12 @@ const es = {
     title: "Entiende qué tan confiable es un video o una grabación antes de actuar.",
     subtitle:
       "Contrastamos las afirmaciones importantes con fuentes disponibles y explicamos qué conviene revisar.",
-    visualMatch: "Coincide",
-    visualMismatch: "No coincide",
-    visualSource: "Fuente independiente",
-    visualClaim: "Lo que dice el contenido",
+    visualOr: "o",
+    visualRecording: "Grabando",
+    visualConclusion: "Coincide en parte",
+    visualSays: "El contenido dice",
+    visualFound: "Encontramos",
+    visualViewSource: "Ver fuente",
     methodology: {
       title: "Cómo funciona el análisis",
       items: [
@@ -50,7 +52,7 @@ const es = {
     title: "Analiza un video de YouTube",
     description:
       "Revisaremos lo que dice el video y las fuentes disponibles. El análisis no juzga a la persona creadora.",
-    label: "Enlace del video",
+    label: "Enlace de YouTube",
     hint: "Pega un enlace público con subtítulos disponibles.",
     errorTitle: "No pudimos iniciar el análisis",
     defaultError: "No pudimos iniciar el análisis.",
@@ -74,7 +76,6 @@ const es = {
     levelLabel: "Riesgo alto",
     outOf: "de 100",
     supported: "Afirmaciones respaldadas",
-    signals: "Contenido con señales de persuasión",
     seeExample: "Ver un análisis real →"
   },
   dashboard: {
@@ -190,10 +191,12 @@ const en: Dictionary = {
     title: "Understand how trustworthy a video or recording is before acting on it.",
     subtitle:
       "We check the key claims against available sources and explain what deserves a closer look.",
-    visualMatch: "Matches",
-    visualMismatch: "Contradicted",
-    visualSource: "Independent source",
-    visualClaim: "What the content says",
+    visualOr: "or",
+    visualRecording: "Recording",
+    visualConclusion: "Partially matches",
+    visualSays: "The content says",
+    visualFound: "We found",
+    visualViewSource: "View source",
     methodology: {
       title: "How the analysis works",
       items: [
@@ -221,7 +224,7 @@ const en: Dictionary = {
     title: "Analyze a YouTube video",
     description:
       "We'll review what the video says and the available sources. The analysis does not judge the creator.",
-    label: "Video link",
+    label: "YouTube link",
     hint: "Paste a public link with subtitles available.",
     errorTitle: "We couldn't start the analysis",
     defaultError: "We couldn't start the analysis.",
@@ -245,7 +248,6 @@ const en: Dictionary = {
     levelLabel: "High risk",
     outOf: "out of 100",
     supported: "Supported claims",
-    signals: "Content with persuasion signals",
     seeExample: "See a real analysis →"
   },
   dashboard: {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Anchor, Badge, Box, Group, Progress, Stack, Text, Title } from "@mantine/core";
+import { Anchor, Badge, Box, Group, Progress, RingProgress, Stack, Text } from "@mantine/core";
 import type { Dictionary } from "@/i18n/dictionaries";
 
 export function VerdictPreview({ dict, href }: { dict: Dictionary["preview"]; href?: string }) {
@@ -14,39 +14,40 @@ export function VerdictPreview({ dict, href }: { dict: Dictionary["preview"]; hr
             {dict.exampleTag}
           </Badge>
         </Group>
-        <Group align="end" gap="xs">
-          <Title order={2} size={48}>
-            72
-          </Title>
-          <Text c="dimmed" mb={8}>
-            {dict.outOf}
-          </Text>
+        <Group align="center" gap="lg" wrap="nowrap">
+          <RingProgress
+            label={
+              <Stack align="center" gap={0}>
+                <Text fw={800} fz={28} lh={1}>
+                  72
+                </Text>
+                <Text c="dimmed" size="xs">
+                  {dict.outOf}
+                </Text>
+              </Stack>
+            }
+            roundCaps
+            sections={[{ color: "orange", value: 72 }]}
+            size={116}
+            thickness={11}
+          />
+          <Stack gap={6} style={{ flex: 1, minWidth: 0 }}>
+            <Group gap="xs" justify="space-between" wrap="nowrap">
+              <Text c="dimmed" size="sm">
+                {dict.supported}
+              </Text>
+              <Text fw={700} size="sm">
+                18%
+              </Text>
+            </Group>
+            <Progress color="green" value={18} />
+            {href ? (
+              <Text c="indigo.7" fw={600} mt={4} size="sm">
+                {dict.seeExample}
+              </Text>
+            ) : null}
+          </Stack>
         </Group>
-        <Stack gap={6}>
-          <Group justify="space-between">
-            <Text c="dimmed" size="sm">
-              {dict.supported}
-            </Text>
-            <Text fw={700} size="sm">
-              18%
-            </Text>
-          </Group>
-          <Progress color="green" value={18} />
-          <Group justify="space-between" mt={4}>
-            <Text c="dimmed" size="sm">
-              {dict.signals}
-            </Text>
-            <Text fw={700} size="sm">
-              40%
-            </Text>
-          </Group>
-          <Progress color="orange" value={40} />
-        </Stack>
-        {href ? (
-          <Text c="indigo.7" fw={600} size="sm">
-            {dict.seeExample}
-          </Text>
-        ) : null}
       </Stack>
     </Box>
   );

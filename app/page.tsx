@@ -36,7 +36,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     : undefined;
 
   const visuals = [
-    <StepVisualLink key="link" />,
+    <StepVisualLink dict={home} key="link" />,
     <StepVisualContrast dict={home} key="contrast" />,
     <VerdictPreview dict={dict.preview} href={exampleHref} key="verdict" />
   ];
@@ -72,9 +72,12 @@ export default async function HomePage({ searchParams }: PageProps) {
               <CardSection h={240} withBorder>
                 {visuals[index]}
               </CardSection>
-              <Text fw={600} mt="md" size="sm">
-                {item.title}
-              </Text>
+              <Group gap="xs" mt="md" wrap="nowrap">
+                <span aria-hidden className={styles.stepNumber}>{index + 1}</span>
+                <Text fw={600} size="sm">
+                  {item.title}
+                </Text>
+              </Group>
               <Text c="dimmed" mt={6} size="sm">
                 {item.detail}
               </Text>
