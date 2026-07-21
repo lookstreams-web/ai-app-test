@@ -12,7 +12,7 @@ const es = {
     newAnalysis: "Analizar otro video"
   },
   home: {
-    metaTitle: "Veredicto — ¿Qué tan confiable es este video?",
+    metaTitle: "Contrast AI — ¿Qué tan confiable es este video?",
     metaDescription:
       "Contrastamos las afirmaciones importantes de un video con fuentes disponibles y explicamos qué conviene revisar antes de decidir.",
     title: "Entiende qué tan confiable es un video antes de actuar.",
@@ -66,7 +66,7 @@ const es = {
     seeExample: "Ver un análisis real →"
   },
   dashboard: {
-    metaTitle: "Veredicto — Diagnóstico del video",
+    metaTitle: "Contrast AI — Diagnóstico del video",
     loadErrorTitle: "No pudimos cargar este análisis",
     queryError: "No pudimos consultar el análisis.",
     failedTitle: "El análisis no pudo completarse",
@@ -167,7 +167,7 @@ const en: Dictionary = {
     newAnalysis: "Analyze another video"
   },
   home: {
-    metaTitle: "Veredicto — How trustworthy is this video?",
+    metaTitle: "Contrast AI — How trustworthy is this video?",
     metaDescription:
       "We check a video's key claims against available sources and explain what deserves a closer look before you decide.",
     title: "Understand how trustworthy a video is before acting on it.",
@@ -220,7 +220,7 @@ const en: Dictionary = {
     seeExample: "See a real analysis →"
   },
   dashboard: {
-    metaTitle: "Veredicto — Video diagnosis",
+    metaTitle: "Contrast AI — Video diagnosis",
     loadErrorTitle: "We couldn't load this analysis",
     queryError: "We couldn't fetch the analysis.",
     failedTitle: "The analysis could not be completed",

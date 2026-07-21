@@ -20,7 +20,7 @@ export function SiteHeader({
       <Group justify="space-between">
         <Anchor component={Link} href={homeHref} underline="never">
           <Text c={onDark ? "indigo.3" : "indigo.7"} fw={800} size="lg">
-            VEREDICTO
+            CONTRAST AI
           </Text>
         </Anchor>
         <Group gap="sm">

@@ -94,14 +94,14 @@ export default async function HomePage({ searchParams }: PageProps) {
           <Group align="center" gap="md" justify="space-between">
             <div>
               <Text c="indigo.7" fw={800}>
-                VEREDICTO
+                CONTRAST AI
               </Text>
               <Text c="dimmed" size="sm">
                 {dict.header.tagline}
               </Text>
             </div>
             <Text c="dimmed" size="xs">
-              © {new Date().getFullYear()} Veredicto
+              © {new Date().getFullYear()} Contrast AI
             </Text>
           </Group>
         </Container>
