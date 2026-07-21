@@ -72,7 +72,7 @@ const es = {
     failedTitle: "El análisis no pudo completarse",
     failedFallback: "Inténtalo nuevamente con otro video.",
     preparingTitle: "Estamos preparando el diagnóstico",
-    retryNote: "El intento anterior no se completó; lo estamos reintentando automáticamente.",
+    sourceLabel: "Video analizado",
     stages: {
       queued: "En cola, comenzaremos en breve",
       leased: "Preparando el análisis",
@@ -226,7 +226,7 @@ const en: Dictionary = {
     failedTitle: "The analysis could not be completed",
     failedFallback: "Try again with another video.",
     preparingTitle: "We're preparing the diagnosis",
-    retryNote: "The previous attempt didn't finish; we're retrying automatically.",
+    sourceLabel: "Analyzed video",
     stages: {
       queued: "Queued, starting shortly",
       leased: "Preparing the analysis",

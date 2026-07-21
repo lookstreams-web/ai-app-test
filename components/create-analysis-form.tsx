@@ -22,7 +22,7 @@ export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"];
       const response = await fetch("/api/analyses", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ sourceType: "youtube", url })
+        body: JSON.stringify({ sourceType: "youtube", url, outputLanguage: locale })
       });
       const body = await response.json();
       if (!response.ok || !body.id) throw new Error(body.error?.message ?? dict.defaultError);

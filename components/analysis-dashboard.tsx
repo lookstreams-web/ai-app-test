@@ -10,6 +10,7 @@ import {
   List,
   Paper,
   Progress,
+  RingProgress,
   SimpleGrid,
   Skeleton,
   Stack,
@@ -92,9 +93,19 @@ type PublicDiagnosis = {
   avisos: string[];
 };
 
+type AnalysisSource = {
+  url: string;
+  title: string;
+  channel: {
+    name: string;
+    url: string | null;
+  };
+};
+
 type Snapshot = {
   status: string;
   progress: number;
+  source: AnalysisSource | null;
   result: PublicDiagnosis | null;
   error: { message: string } | null;
 };
@@ -128,6 +139,18 @@ const conclusionColors: Record<string, string> = {
   no_se_pudo_comprobar: "gray",
   todavia_no_se_puede_saber: "gray"
 };
+
+function timestampUrl(sourceUrl: string, timestamp: string): string | null {
+  const match = /^(\d{2,}):(\d{2})$/.exec(timestamp);
+  if (!match) return null;
+  try {
+    const url = new URL(sourceUrl);
+    url.searchParams.set("t", `${Number(match[1]) * 60 + Number(match[2])}s`);
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
 
 function humanize(value: string) {
   return value
@@ -178,6 +201,44 @@ function SourceLinks({
         </Anchor>
       ))}
     </Group>
+  );
+}
+
+function SourceInfo({ source, dict }: { source: AnalysisSource | null; dict: DashboardDict }) {
+  if (!source) return null;
+  return (
+    <div>
+      <Text c="dimmed" fw={700} size="xs" tt="uppercase">
+        {dict.sourceLabel}
+      </Text>
+      <Anchor
+        c="inherit"
+        fw={700}
+        fz="xl"
+        href={source.url}
+        rel="noreferrer"
+        target="_blank"
+        underline="hover"
+      >
+        {source.title}
+      </Anchor>
+      {source.channel.url ? (
+        <Anchor
+          c="dimmed"
+          display="block"
+          href={source.channel.url}
+          rel="noreferrer"
+          size="sm"
+          target="_blank"
+        >
+          {source.channel.name}
+        </Anchor>
+      ) : (
+        <Text c="dimmed" size="sm">
+          {source.channel.name}
+        </Text>
+      )}
+    </div>
   );
 }
 
@@ -270,9 +331,12 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
 
   if (snapshot.status === "failed") {
     return (
-      <Alert color="red" title={dict.failedTitle}>
-        {snapshot.error?.message ?? dict.failedFallback}
-      </Alert>
+      <Stack gap="lg">
+        <SourceInfo dict={dict} source={snapshot.source} />
+        <Alert color="red" title={dict.failedTitle}>
+          {snapshot.error?.message ?? dict.failedFallback}
+        </Alert>
+      </Stack>
     );
   }
 
@@ -280,27 +344,25 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
     return (
       <>
         <ScanPulses />
-        <Paper withBorder p="xl" radius="lg">
-          <Stack gap="md">
-            <Group justify="space-between">
-              <div>
-                <Text fw={700}>{dict.preparingTitle}</Text>
-                <Text c="dimmed" size="sm">
-                  {dict.stages[snapshot.status] ?? snapshot.status}
-                </Text>
-              </div>
-              <Badge color="indigo" variant="light">
-                {snapshot.progress}%
-              </Badge>
-            </Group>
-            <Progress animated value={snapshot.progress} />
-            {snapshot.error ? (
-              <Text c="dimmed" size="xs">
-                {dict.retryNote}
-              </Text>
-            ) : null}
-          </Stack>
-        </Paper>
+        <Stack gap="lg">
+          <SourceInfo dict={dict} source={snapshot.source} />
+          <Paper withBorder p="xl" radius="lg">
+            <Stack gap="md">
+              <Group justify="space-between">
+                <div>
+                  <Text fw={700}>{dict.preparingTitle}</Text>
+                  <Text c="dimmed" size="sm">
+                    {dict.stages[snapshot.status] ?? snapshot.status}
+                  </Text>
+                </div>
+                <Badge color="indigo" variant="light">
+                  {snapshot.progress}%
+                </Badge>
+              </Group>
+              <Progress animated value={snapshot.progress} />
+            </Stack>
+          </Paper>
+        </Stack>
       </>
     );
   }
@@ -321,6 +383,7 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
 
   return (
     <Stack gap="xl">
+      <SourceInfo dict={dict} source={snapshot.source} />
       {diagnosis.estado_de_la_revision === "requiere_revision_humana" ? (
         <Alert color="red" title={dict.humanReviewTitle}>
           {dict.humanReviewBody}
@@ -367,21 +430,46 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
               <Text c="dimmed" size="sm">
                 {dict.noScoreNote}
               </Text>
+              {provisional ? (
+                <Text c="dimmed" mt="xs" size="xs">
+                  {dict.provisionalNote}
+                </Text>
+              ) : null}
+              <Text mt="xs">{diagnosis.consejo_inmediato}</Text>
             </>
           ) : (
-            <Group align="end" mt="xs">
-              <Title order={2} size={64}>
-                {diagnosis.puntaje_de_alerta_pct}
-              </Title>
-              <Text mb={12}>{dict.scoreOutOf}</Text>
+            <Group align="center" gap="lg" mt="md">
+              <RingProgress
+                label={
+                  <Stack align="center" gap={0}>
+                    <Text fw={800} fz={38} lh={1}>
+                      {diagnosis.puntaje_de_alerta_pct}
+                    </Text>
+                    <Text c="dimmed" size="xs">
+                      {dict.scoreOutOf}
+                    </Text>
+                  </Stack>
+                }
+                roundCaps
+                sections={[
+                  {
+                    value: diagnosis.puntaje_de_alerta_pct,
+                    color: levelColors[diagnosis.nivel] ?? "gray"
+                  }
+                ]}
+                size={160}
+                thickness={14}
+              />
+              <Stack gap="xs" style={{ flex: 1, minWidth: 220 }}>
+                {provisional ? (
+                  <Text c="dimmed" size="xs">
+                    {dict.provisionalNote}
+                  </Text>
+                ) : null}
+                <Text>{diagnosis.consejo_inmediato}</Text>
+              </Stack>
             </Group>
           )}
-          {provisional ? (
-            <Text c="dimmed" size="xs" mb="xs">
-              {dict.provisionalNote}
-            </Text>
-          ) : null}
-          <Text>{diagnosis.consejo_inmediato}</Text>
         </Paper>
 
         <Paper withBorder p="lg" radius="lg">
@@ -513,43 +601,54 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
             {dict.contrastSubtitle}
           </Text>
           <Stack mt="md">
-            {result.contrastes.map((contrast) => (
-              <Paper
-                key={`${contrast.momento_del_video}-${contrast.dice}`}
-                withBorder
-                p="lg"
-                radius="md"
-              >
-                <Group justify="space-between" mb="md">
-                  <Badge color={conclusionColors[contrast.conclusion] ?? "gray"}>
-                    {label(dict.conclusions, contrast.conclusion)}
-                  </Badge>
-                  <Text c="dimmed" size="sm">
-                    {contrast.momento_del_video}
-                  </Text>
-                </Group>
-                <SimpleGrid cols={{ base: 1, md: 2 }}>
-                  <div>
-                    <Text c="dimmed" size="xs" fw={700}>
-                      {dict.videoSays}
+            {result.contrastes.map((contrast) => {
+              const momentUrl = snapshot.source
+                ? timestampUrl(snapshot.source.url, contrast.momento_del_video)
+                : null;
+              return (
+                <Paper
+                  key={`${contrast.momento_del_video}-${contrast.dice}`}
+                  withBorder
+                  p="lg"
+                  radius="md"
+                >
+                  <Group justify="space-between" mb="md">
+                    <Badge color={conclusionColors[contrast.conclusion] ?? "gray"}>
+                      {label(dict.conclusions, contrast.conclusion)}
+                    </Badge>
+                    {momentUrl ? (
+                      <Anchor c="dimmed" href={momentUrl} rel="noreferrer" size="sm" target="_blank">
+                        {contrast.momento_del_video}
+                      </Anchor>
+                    ) : (
+                      <Text c="dimmed" size="sm">
+                        {contrast.momento_del_video}
+                      </Text>
+                    )}
+                  </Group>
+                  <SimpleGrid cols={{ base: 1, md: 2 }}>
+                    <div>
+                      <Text c="dimmed" size="xs" fw={700}>
+                        {dict.videoSays}
+                      </Text>
+                      <Text fw={600}>&ldquo;{contrast.dice}&rdquo;</Text>
+                    </div>
+                    <div>
+                      <Text c="dimmed" size="xs" fw={700}>
+                        {dict.weFound}
+                      </Text>
+                      <Text>{contrast.encontramos}</Text>
+                    </div>
+                  </SimpleGrid>
+                  {contrast.explicacion !== contrast.encontramos ? (
+                    <Text c="dimmed" mt="md" size="sm">
+                      {contrast.explicacion}
                     </Text>
-                    <Text fw={600}>&ldquo;{contrast.dice}&rdquo;</Text>
-                  </div>
-                  <div>
-                    <Text c="dimmed" size="xs" fw={700}>
-                      {dict.weFound}
-                    </Text>
-                    <Text>{contrast.encontramos}</Text>
-                  </div>
-                </SimpleGrid>
-                {contrast.explicacion !== contrast.encontramos ? (
-                  <Text c="dimmed" mt="md" size="sm">
-                    {contrast.explicacion}
-                  </Text>
-                ) : null}
-                <SourceLinks dict={dict} ids={contrast.fuentes} sources={sources} />
-              </Paper>
-            ))}
+                  ) : null}
+                  <SourceLinks dict={dict} ids={contrast.fuentes} sources={sources} />
+                </Paper>
+              );
+            })}
           </Stack>
         </div>
       ) : null}
