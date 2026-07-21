@@ -11,7 +11,9 @@ export interface YoutubeSourceSnapshot {
 export interface VoiceRecordingSourceSnapshot {
   kind: 'voiceRecording';
   url: null;
-  title: string;
+  // Puede ser null durante `transcribing`, cuando el input todavía es el sobre
+  // de audio y aún no existe `source.title`.
+  title: string | null;
   channel: null;
   recordedAt: string | null;
 }
@@ -23,22 +25,26 @@ export interface AnalysisErrorSnapshot {
   message: string;
 }
 
-export function buildSourceSnapshot(value: unknown): AnalysisSourceSnapshot | null {
-  if (!value || typeof value !== 'object') return null;
-  const source = value as Record<string, unknown>;
-  if (typeof source.title !== 'string') return null;
+/**
+ * Construye la fuente pública del snapshot. Nunca expone la ruta del audio.
+ * `inputKind` es el `input->kind` de la fila: durante la etapa `transcribing`
+ * (o en cola) el input todavía es el sobre `audioPending` y aún no hay `source`,
+ * así que lo usamos para etiquetar la fuente como grabación de voz.
+ */
+export function buildSourceSnapshot(value: unknown, inputKind?: unknown): AnalysisSourceSnapshot | null {
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
 
-  if (source.kind === 'voiceRecording') {
+  if (source?.kind === 'voiceRecording' || inputKind === 'audioPending') {
     return {
       kind: 'voiceRecording',
       url: null,
-      title: source.title,
+      title: typeof source?.title === 'string' ? source.title : null,
       channel: null,
-      recordedAt: typeof source.recordedAt === 'string' ? source.recordedAt : null,
+      recordedAt: typeof source?.recordedAt === 'string' ? source.recordedAt : null,
     };
   }
 
-  if (typeof source.url !== 'string') return null;
+  if (!source || typeof source.title !== 'string' || typeof source.url !== 'string') return null;
 
   const rawChannel = source.channel;
   const channel = rawChannel && typeof rawChannel === 'object'

@@ -49,10 +49,10 @@ export default async function HomePage({ searchParams }: PageProps) {
           <SiteHeader dict={dict.header} locale={locale} />
         </div>
         <Container size="lg" pb={40} pt={{ base: "md", sm: "lg" }}>
-          <Title order={1} size="h1" ta="center">
+          <Title order={1} size="h1" style={{ textWrap: "balance" }} ta="center">
             {home.title}
           </Title>
-          <Text c="dimmed" fz="lg" maw={640} mt="md" mx="auto" ta="center">
+          <Text c="dimmed" fz="lg" maw={640} mt="md" mx="auto" style={{ textWrap: "balance" }} ta="center">
             {home.subtitle}
           </Text>
           <div className={styles.fadeIn}>

@@ -12,23 +12,23 @@ const es = {
     newAnalysis: "Analizar otro video"
   },
   home: {
-    metaTitle: "Contrast AI — ¿Qué tan confiable es este video?",
+    metaTitle: "Contrast AI — ¿Qué tan confiable es este contenido?",
     metaDescription:
-      "Contrastamos las afirmaciones importantes de un video con fuentes disponibles y explicamos qué conviene revisar antes de decidir.",
-    title: "Entiende qué tan confiable es un video antes de actuar.",
+      "Contrastamos las afirmaciones importantes de un video o una grabación con fuentes disponibles y explicamos qué conviene revisar antes de decidir.",
+    title: "Entiende qué tan confiable es un video o una grabación antes de actuar.",
     subtitle:
       "Contrastamos las afirmaciones importantes con fuentes disponibles y explicamos qué conviene revisar.",
     visualMatch: "Coincide",
     visualMismatch: "No coincide",
     visualSource: "Fuente independiente",
-    visualClaim: "Lo que dice el video",
+    visualClaim: "Lo que dice el contenido",
     methodology: {
       title: "Cómo funciona el análisis",
       items: [
         {
-          title: "Leemos lo que dice el video",
+          title: "Leemos lo que se dice",
           detail:
-            "Usamos los subtítulos públicos e identificamos las afirmaciones importantes que se pueden comprobar."
+            "Usamos los subtítulos del video o la transcripción de tu grabación e identificamos las afirmaciones importantes que se pueden comprobar."
         },
         {
           title: "Buscamos evidencia pública",
@@ -55,7 +55,19 @@ const es = {
     errorTitle: "No pudimos iniciar el análisis",
     defaultError: "No pudimos iniciar el análisis.",
     submit: "Analizar video",
-    expectation: "Gratis · sin registro · el análisis tarda unos minutos"
+    audio: {
+      record: "Iniciar grabación",
+      recording: "Grabando",
+      stop: "Detener",
+      reviewTitle: "Revisa tu grabación",
+      analyze: "Analizar grabación",
+      discard: "Descartar",
+      permissionDenied:
+        "No pudimos acceder al micrófono. Revisa los permisos del navegador; también puedes analizar un enlace de YouTube.",
+      unsupported: "Tu navegador no permite grabar audio. Prueba con un enlace de YouTube.",
+      note: "Asegúrate de tener permiso de las personas involucradas antes de grabar.",
+      limitReached: "Alcanzaste el límite de 30 minutos de grabación."
+    }
   },
   preview: {
     exampleTag: "Ejemplo",
@@ -73,9 +85,11 @@ const es = {
     failedFallback: "Inténtalo nuevamente con otro video.",
     preparingTitle: "Estamos preparando el diagnóstico",
     sourceLabel: "Video analizado",
+    voiceSourceLabel: "Grabación de voz",
     stages: {
       queued: "En cola, comenzaremos en breve",
       leased: "Preparando el análisis",
+      transcribing: "Transcribiendo tu audio…",
       analyzing: "Analizando el contenido del video",
       researching: "Buscando evidencia en fuentes públicas",
       adjudicating: "Contrastando afirmaciones con la evidencia",
@@ -167,22 +181,22 @@ const en: Dictionary = {
     newAnalysis: "Analyze another video"
   },
   home: {
-    metaTitle: "Contrast AI — How trustworthy is this video?",
+    metaTitle: "Contrast AI — How trustworthy is this content?",
     metaDescription:
-      "We check a video's key claims against available sources and explain what deserves a closer look before you decide.",
-    title: "Understand how trustworthy a video is before acting on it.",
+      "We check the key claims of a video or recording against available sources and explain what deserves a closer look before you decide.",
+    title: "Understand how trustworthy a video or recording is before acting on it.",
     subtitle:
       "We check the key claims against available sources and explain what deserves a closer look.",
     visualMatch: "Matches",
     visualMismatch: "Contradicted",
     visualSource: "Independent source",
-    visualClaim: "What the video says",
+    visualClaim: "What the content says",
     methodology: {
       title: "How the analysis works",
       items: [
         {
-          title: "We read what the video says",
-          detail: "We use the public subtitles and identify the key claims that can be verified."
+          title: "We read what is said",
+          detail: "We use the video's subtitles or your recording's transcript and identify the key claims that can be verified."
         },
         {
           title: "We search for public evidence",
@@ -209,7 +223,19 @@ const en: Dictionary = {
     errorTitle: "We couldn't start the analysis",
     defaultError: "We couldn't start the analysis.",
     submit: "Analyze video",
-    expectation: "Free · no sign-up · the analysis takes a few minutes"
+    audio: {
+      record: "Start recording",
+      recording: "Recording",
+      stop: "Stop",
+      reviewTitle: "Review your recording",
+      analyze: "Analyze recording",
+      discard: "Discard",
+      permissionDenied:
+        "We couldn't access the microphone. Check your browser permissions; you can also analyze a YouTube link.",
+      unsupported: "Your browser can't record audio. Try a YouTube link instead.",
+      note: "Make sure you have permission from everyone involved before recording.",
+      limitReached: "You reached the 30-minute recording limit."
+    }
   },
   preview: {
     exampleTag: "Example",
@@ -227,9 +253,11 @@ const en: Dictionary = {
     failedFallback: "Try again with another video.",
     preparingTitle: "We're preparing the diagnosis",
     sourceLabel: "Analyzed video",
+    voiceSourceLabel: "Voice recording",
     stages: {
       queued: "Queued, starting shortly",
       leased: "Preparing the analysis",
+      transcribing: "Transcribing your audio…",
       analyzing: "Analyzing the video content",
       researching: "Searching public sources for evidence",
       adjudicating: "Checking claims against the evidence",

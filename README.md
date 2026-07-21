@@ -128,6 +128,31 @@ La cola también acepta una grabación pendiente de transcripción:
 worker descarga el audio, llama a `@motor/audio-transcription`, persiste el transcript
 y elimina el objeto. La web no llama directamente a OpenAI.
 
+### Grabación de voz desde la web
+
+La home permite grabar la voz en el navegador (`MediaRecorder`, webm/opus con
+fallback a `audio/mp4`) y enviarla como `multipart/form-data` al mismo endpoint:
+
+```bash
+curl -X POST http://localhost:3000/api/analyses \
+  -F "audio=@grabacion.webm;type=audio/webm" \
+  -F "language=es" -F "outputLanguage=es"
+```
+
+El endpoint valida tipo y tamaño (hasta 50 MB), sube el objeto a
+`analysis-audio/{id}.webm` y encola el sobre `audioPending`; **no ejecuta
+OpenAI**. El worker añade una etapa previa `transcribing` (troceo con ffmpeg +
+transcripción con la API de audio de OpenAI en `@motor/audio-transcription`),
+reemplaza el `input` por el texto (`source.kind = "voiceRecording"`,
+`origin: "speechToText"`, `publicContext: false`) y corre el motor. Sin canal
+público, el puntaje sale con más frecuencia en banda `indeterminate`.
+
+El paquete de transcripción usa `OPENAI_TRANSCRIBE_MODEL` (por defecto
+`gpt-4o-transcribe`). Aplica las migraciones antes de usarlo:
+`202607210001_voice_recording.sql` agrega el estado `transcribing` y ajusta el
+arrendamiento de la cola, y `202607210002_analysis_audio_bucket.sql` crea el
+bucket privado `analysis-audio` (50MB máximo, solo tipos de audio).
+
 `outputLanguage` es opcional, acepta `es` o `en` y usa `es` de manera predeterminada. Cambia el idioma de los textos generados y de las plantillas públicas; las claves JSON y los valores enum permanecen estables para la UI.
 
 Para una prueba local completa sin depender todavía del rate limit de la API web, inicia el worker y ejecuta en otra terminal:

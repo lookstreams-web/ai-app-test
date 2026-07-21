@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { analysisJobInputSchema } from '@motor/analysis-contracts';
-import { buildYoutubeAnalysisInput } from '@/lib/analysis-input';
+import { analysisJobInputSchema, audioJobEnvelopeSchema } from '@motor/analysis-contracts';
+import {
+  audioObjectPath,
+  buildAudioJobEnvelope,
+  buildYoutubeAnalysisInput,
+} from '@/lib/analysis-input';
 
 describe('buildYoutubeAnalysisInput', () => {
   it('convierte la salida de Jorge al contrato que consume el worker', () => {
@@ -19,7 +23,10 @@ describe('buildYoutubeAnalysisInput', () => {
 
     expect(analysisJobInputSchema.safeParse(input).success).toBe(true);
     expect(input.source.durationSeconds).toBe(5);
-    expect(input.source.channel.name).toBe('Canal de prueba');
+    expect(input.source.kind).toBe('youtube');
+    if (input.source.kind === 'youtube') {
+      expect(input.source.channel.name).toBe('Canal de prueba');
+    }
     expect(input.transcript.segments[1]).toMatchObject({
       id: 'segment-2',
       startSeconds: 2,
@@ -46,5 +53,28 @@ describe('buildYoutubeAnalysisInput', () => {
       outputLanguage: 'en',
       timeBudgetMs: 600_000,
     });
+  });
+});
+
+describe('buildAudioJobEnvelope', () => {
+  it('construye un sobre audioPending válido con la ruta del audio', () => {
+    const envelope = buildAudioJobEnvelope('abc-123.webm', 'es', 'en');
+    expect(audioJobEnvelopeSchema.safeParse(envelope).success).toBe(true);
+    expect(envelope).toMatchObject({
+      kind: 'audioPending',
+      audioPath: 'abc-123.webm',
+      language: 'es',
+      outputLanguage: 'en',
+      recordedAt: null,
+    });
+  });
+
+  it('usa el idioma de salida por defecto igual al idioma de entrada cuando no se pasa', () => {
+    const envelope = buildAudioJobEnvelope('x.webm', 'en');
+    expect(envelope.outputLanguage).toBe('es');
+  });
+
+  it('deriva la ruta del audio a partir del id del análisis', () => {
+    expect(audioObjectPath('9f8e')).toBe('9f8e.webm');
   });
 });

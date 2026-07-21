@@ -94,12 +94,13 @@ type PublicDiagnosis = {
 };
 
 type AnalysisSource = {
-  url: string;
-  title: string;
+  kind?: "voiceRecording";
+  url: string | null;
+  title: string | null;
   channel: {
     name: string;
     url: string | null;
-  };
+  } | null;
 };
 
 type Snapshot = {
@@ -113,6 +114,7 @@ type Snapshot = {
 const pending = new Set([
   "queued",
   "leased",
+  "transcribing",
   "analyzing",
   "researching",
   "adjudicating",
@@ -206,23 +208,44 @@ function SourceLinks({
 
 function SourceInfo({ source, dict }: { source: AnalysisSource | null; dict: DashboardDict }) {
   if (!source) return null;
+
+  // Grabación de voz: no hay video ni canal público que enlazar.
+  if (source.kind === "voiceRecording") {
+    return (
+      <div>
+        <Text c="dimmed" fw={700} size="xs" tt="uppercase">
+          {dict.voiceSourceLabel}
+        </Text>
+        <Text fw={700} fz="xl">
+          {source.title ?? dict.voiceSourceLabel}
+        </Text>
+      </div>
+    );
+  }
+
   return (
     <div>
       <Text c="dimmed" fw={700} size="xs" tt="uppercase">
         {dict.sourceLabel}
       </Text>
-      <Anchor
-        c="inherit"
-        fw={700}
-        fz="xl"
-        href={source.url}
-        rel="noreferrer"
-        target="_blank"
-        underline="hover"
-      >
-        {source.title}
-      </Anchor>
-      {source.channel.url ? (
+      {source.url ? (
+        <Anchor
+          c="inherit"
+          fw={700}
+          fz="xl"
+          href={source.url}
+          rel="noreferrer"
+          target="_blank"
+          underline="hover"
+        >
+          {source.title}
+        </Anchor>
+      ) : (
+        <Text fw={700} fz="xl">
+          {source.title}
+        </Text>
+      )}
+      {source.channel?.url ? (
         <Anchor
           c="dimmed"
           display="block"
@@ -233,11 +256,11 @@ function SourceInfo({ source, dict }: { source: AnalysisSource | null; dict: Das
         >
           {source.channel.name}
         </Anchor>
-      ) : (
+      ) : source.channel ? (
         <Text c="dimmed" size="sm">
           {source.channel.name}
         </Text>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -616,7 +639,7 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
           </Text>
           <Stack mt="md">
             {result.contrastes.map((contrast) => {
-              const momentUrl = snapshot.source
+              const momentUrl = snapshot.source?.url
                 ? timestampUrl(snapshot.source.url, contrast.momento_del_video)
                 : null;
               return (
