@@ -1,22 +1,32 @@
-import { Container, Title, Text, Code } from '@mantine/core';
+import { Container } from "@mantine/core";
+import { AnalysisDashboard } from "@/components/analysis-dashboard";
+import { SiteHeader } from "@/components/site-header";
+import { getDictionary, resolveLocale } from "@/i18n/resolve";
+import styles from "./page.module.css";
 
-// Placeholder de la página de resultado compartible. Joel construye la
-// visualización del informe (índice de hype, breakdown, findings) leyendo
-// GET /api/analyses/[id].
-export default async function AnalysisPage({ params }: { params: Promise<{ id: string }> }) {
+type PageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ lang?: string | string[] }>;
+};
+
+export async function generateMetadata({ searchParams }: PageProps) {
+  const dict = getDictionary(await resolveLocale(await searchParams));
+  return { title: dict.dashboard.metaTitle };
+}
+
+export default async function AnalysisPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const locale = await resolveLocale(await searchParams);
+  const dict = getDictionary(locale);
+
   return (
-    <Container size="sm" py="xl">
-      <Title order={2}>Análisis</Title>
-      <Text mt="md" c="dimmed">
-        Placeholder. La visualización del informe la construye Joel.
-      </Text>
-      <Text mt="md" size="sm">
-        ID: <Code>{id}</Code>
-      </Text>
-      <Text mt="xs" size="sm">
-        Datos en <Code>GET /api/analyses/{id}</Code>.
-      </Text>
-    </Container>
+    <div className={styles.page}>
+      <div className={styles.navBar}>
+        <SiteHeader dict={dict.header} locale={locale} showNewAnalysis />
+      </div>
+      <Container size="lg" pb={64} pt="md" w="100%">
+        <AnalysisDashboard dict={dict.dashboard} id={id} />
+      </Container>
+    </div>
   );
 }

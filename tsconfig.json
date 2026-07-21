@@ -23,6 +23,8 @@
     "next-env.d.ts",
     "app/**/*.ts",
     "app/**/*.tsx",
+    "components/**/*.tsx",
+    "i18n/**/*.ts",
     "lib/**/*.ts",
     "lib/**/*.tsx",
     "scripts/**/*.ts",

@@ -1,0 +1,35 @@
+.page {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f8f9fc;
+}
+
+/* Banda superior con la identidad de la home (puntos + mesh), más tenue y
+   disuelta en los primeros ~360px para que los datos queden sobre fondo calmo. */
+.page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 360px;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to bottom, rgba(248, 249, 252, 0) 45%, #f8f9fc 100%),
+    radial-gradient(rgba(20, 20, 20, 0.06) 1px, transparent 1px),
+    radial-gradient(ellipse 55% 130% at 15% -30%, rgba(92, 124, 250, 0.11), transparent 62%),
+    radial-gradient(ellipse 50% 110% at 88% -20%, rgba(59, 201, 219, 0.09), transparent 60%);
+  background-size:
+    100% 100%,
+    20px 20px,
+    100% 100%,
+    100% 100%;
+}
+
+.navBar {
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+}

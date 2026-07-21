@@ -1,0 +1,75 @@
+.pulses {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pulses span {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  margin: -90px 0 0 -90px;
+}
+
+.pulses span:nth-child(1) {
+  top: 55%;
+  left: 12%;
+  --pulse-delay: 0s;
+}
+
+.pulses span:nth-child(2) {
+  top: 30%;
+  left: 88%;
+  --pulse-delay: 3s;
+}
+
+.pulses span:nth-child(3) {
+  top: 78%;
+  left: 72%;
+  --pulse-delay: 6s;
+}
+
+.pulses span::before,
+.pulses span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--mantine-color-indigo-4);
+  background: radial-gradient(circle, rgba(92, 124, 250, 0.08) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0.2);
+  animation: pulse-ring 9s ease-out infinite;
+  animation-delay: var(--pulse-delay, 0s);
+}
+
+.pulses span::after {
+  animation-delay: calc(var(--pulse-delay, 0s) + 0.6s);
+}
+
+@keyframes pulse-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  10% {
+    opacity: 0.45;
+  }
+  35% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulses span::before,
+  .pulses span::after {
+    animation: none;
+  }
+}
