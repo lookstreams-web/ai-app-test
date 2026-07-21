@@ -25,7 +25,7 @@ export default async function AnalysisPage({ params, searchParams }: PageProps) 
         <SiteHeader dict={dict.header} locale={locale} showNewAnalysis />
       </div>
       <Container size="lg" pb={64} pt="md" w="100%">
-        <AnalysisDashboard dict={dict.dashboard} id={id} />
+        <AnalysisDashboard dict={dict.dashboard} id={id} locale={locale} />
       </Container>
     </div>
   );

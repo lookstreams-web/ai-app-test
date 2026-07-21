@@ -116,7 +116,7 @@ export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"];
         <Stack gap="sm">
           {recorder.state === "recording" ? (
             <Stack align="center" gap="xs">
-              <Button color="red" onClick={recorder.stop} variant="light">
+              <Button color="red" onClick={recorder.stop} variant="light" w={{ base: "100%", sm: "auto" }}>
                 {dict.audio.stop}
               </Button>
               <Group gap="xs" wrap="nowrap">
@@ -157,6 +157,7 @@ export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"];
               }}
               style={{ alignSelf: "center" }}
               variant="light"
+              w={{ base: "100%", sm: "auto" }}
             >
               {dict.audio.record}
             </Button>

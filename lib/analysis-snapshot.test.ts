@@ -50,6 +50,30 @@ describe('snapshot público de análisis', () => {
     });
   });
 
+  it('usa el recordedAt del sobre mientras la transcripción no ha creado el source', () => {
+    expect(buildSourceSnapshot(null, 'audioPending', '2026-07-21T15:38:00.000Z')).toEqual({
+      kind: 'voiceRecording',
+      url: null,
+      title: null,
+      channel: null,
+      recordedAt: '2026-07-21T15:38:00.000Z',
+    });
+  });
+
+  it('prefiere el recordedAt del source cuando ya existe', () => {
+    expect(buildSourceSnapshot(
+      { kind: 'voiceRecording', title: 'Grabación de voz', recordedAt: '2026-07-21T15:38:00.000Z' },
+      undefined,
+      '2026-07-21T15:39:00.000Z',
+    )).toEqual({
+      kind: 'voiceRecording',
+      url: null,
+      title: 'Grabación de voz',
+      channel: null,
+      recordedAt: '2026-07-21T15:38:00.000Z',
+    });
+  });
+
   it('nunca expone la ruta del audio en el snapshot', () => {
     const snapshot = buildSourceSnapshot({ kind: 'voiceRecording', title: 'x' }, 'audioPending');
     expect(JSON.stringify(snapshot)).not.toContain('.webm');

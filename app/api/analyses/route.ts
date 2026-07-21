@@ -110,7 +110,7 @@ async function handleAudio(req: Request) {
       throw new HttpError(500, 'AUDIO_UPLOAD_FAILED', uploadError.message);
     }
 
-    const input = buildAudioJobEnvelope(audioPath, language, outputLanguage);
+    const input = buildAudioJobEnvelope(audioPath, language, outputLanguage, new Date().toISOString());
     const { data, error } = await admin
       .from('analyses')
       .insert({ id, input, status: 'queued', progress: 0 })

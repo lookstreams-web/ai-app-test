@@ -12,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const admin = createAdminClient();
     const { data, error } = await admin
       .from('analyses')
-      .select('id, status, progress, source:input->source, inputKind:input->kind, public_diagnosis, legacy_v1_report, last_error, created_at, completed_at')
+      .select('id, status, progress, source:input->source, inputKind:input->kind, envelopeRecordedAt:input->recordedAt, public_diagnosis, legacy_v1_report, last_error, created_at, completed_at')
       .eq('id', id)
       .maybeSingle();
 
@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       id: data.id,
       status: data.status,
       progress: data.progress,
-      source: buildSourceSnapshot(data.source, data.inputKind),
+      source: buildSourceSnapshot(data.source, data.inputKind, data.envelopeRecordedAt),
       result: data.public_diagnosis,
       legacyResult: data.legacy_v1_report,
       error: buildAnalysisError(data.status, data.last_error),

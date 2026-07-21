@@ -30,17 +30,26 @@ export interface AnalysisErrorSnapshot {
  * `inputKind` es el `input->kind` de la fila: durante la etapa `transcribing`
  * (o en cola) el input todavía es el sobre `audioPending` y aún no hay `source`,
  * así que lo usamos para etiquetar la fuente como grabación de voz.
+ * `envelopeRecordedAt` es el `input->recordedAt` del sobre: permite mostrar la
+ * fecha de la grabación desde el primer polling, antes de que exista `source`.
  */
-export function buildSourceSnapshot(value: unknown, inputKind?: unknown): AnalysisSourceSnapshot | null {
+export function buildSourceSnapshot(
+  value: unknown,
+  inputKind?: unknown,
+  envelopeRecordedAt?: unknown,
+): AnalysisSourceSnapshot | null {
   const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
 
   if (source?.kind === 'voiceRecording' || inputKind === 'audioPending') {
+    const recordedAt = typeof source?.recordedAt === 'string'
+      ? source.recordedAt
+      : typeof envelopeRecordedAt === 'string' ? envelopeRecordedAt : null;
     return {
       kind: 'voiceRecording',
       url: null,
       title: typeof source?.title === 'string' ? source.title : null,
       channel: null,
-      recordedAt: typeof source?.recordedAt === 'string' ? source.recordedAt : null,
+      recordedAt,
     };
   }
 
