@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, Button, Paper, Stack, Text, TextInput, Title } from "@mantine/core";
+import { Alert, Button, Flex, Paper, Stack, Text, TextInput } from "@mantine/core";
 import type { Dictionary, Locale } from "@/i18n/dictionaries";
 
 export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"]; locale: Locale }) {
@@ -34,31 +34,36 @@ export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"];
   return (
     <Paper withBorder radius="lg" p={{ base: "md", sm: "xl" }} shadow="sm">
       <Stack gap="md">
-        <div>
-          <Title order={2}>{dict.title}</Title>
-          <Text c="dimmed" mt={6}>
-            {dict.description}
-          </Text>
-        </div>
         <form onSubmit={submit}>
           <Stack gap="sm">
-            <TextInput
-              description={dict.hint}
-              label={dict.label}
-              onChange={(event) => setUrl(event.currentTarget.value)}
-              placeholder="https://www.youtube.com/watch?v=..."
-              required
-              type="url"
-              value={url}
-            />
+            <Flex
+              align={{ base: "stretch", sm: "flex-end" }}
+              direction={{ base: "column", sm: "row" }}
+              gap="sm"
+            >
+              <TextInput
+                description={dict.hint}
+                label={dict.label}
+                onChange={(event) => setUrl(event.currentTarget.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                required
+                size="md"
+                style={{ flex: 1 }}
+                type="url"
+                value={url}
+              />
+              <Button color="orange" loading={submitting} size="md" type="submit">
+                {dict.submit}
+              </Button>
+            </Flex>
             {error ? (
               <Alert color="red" title={dict.errorTitle}>
                 {error}
               </Alert>
             ) : null}
-            <Button color="orange" loading={submitting} size="md" type="submit">
-              {dict.submit}
-            </Button>
+            <Text c="dimmed" size="xs" ta="center">
+              {dict.expectation}
+            </Text>
           </Stack>
         </form>
       </Stack>

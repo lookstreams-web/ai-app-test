@@ -18,24 +18,33 @@ const es = {
     title: "Entiende qué tan confiable es un video antes de actuar.",
     subtitle:
       "Contrastamos las afirmaciones importantes con fuentes disponibles y explicamos qué conviene revisar.",
-    steps: [
-      {
-        title: "Pega el enlace",
-        detail: "Aceptamos videos públicos de YouTube con subtítulos disponibles."
-      },
-      {
-        title: "Contrastamos con fuentes",
-        detail:
-          "Extraemos las afirmaciones importantes y las comparamos con evidencia pública. Tarda unos minutos."
-      },
-      {
-        title: "Decide con contexto",
-        detail:
-          "Recibes un puntaje de alerta, señales de persuasión y consejos concretos antes de actuar."
-      }
-    ],
-    disclaimer:
-      "Veredicto analiza el contenido, no juzga a las personas. Los resultados son orientativos, dependen de la evidencia pública disponible y no constituyen asesoría profesional."
+    visualMatch: "Coincide",
+    visualMismatch: "No coincide",
+    visualSource: "Fuente independiente",
+    visualClaim: "Lo que dice el video",
+    methodology: {
+      title: "Cómo funciona el análisis",
+      items: [
+        {
+          title: "Leemos lo que dice el video",
+          detail:
+            "Usamos los subtítulos públicos e identificamos las afirmaciones importantes que se pueden comprobar."
+        },
+        {
+          title: "Buscamos evidencia pública",
+          detail:
+            "Contrastamos cada afirmación con fuentes disponibles: medios, organismos oficiales y documentación pública."
+        },
+        {
+          title: "Calculamos el puntaje de alerta",
+          detail:
+            "Un puntaje más alto significa más precaución. Sumamos señales de persuasión como urgencia o presión emocional."
+        }
+      ],
+      limitsTitle: "Ten en cuenta",
+      limits:
+        "El análisis depende de la evidencia pública disponible en el momento y puede quedar incompleto o desactualizado."
+    }
   },
   form: {
     title: "Analiza un video de YouTube",
@@ -45,7 +54,16 @@ const es = {
     hint: "Pega un enlace público con subtítulos disponibles.",
     errorTitle: "No pudimos iniciar el análisis",
     defaultError: "No pudimos iniciar el análisis.",
-    submit: "Analizar video"
+    submit: "Analizar video",
+    expectation: "Gratis · sin registro · el análisis tarda unos minutos"
+  },
+  preview: {
+    exampleTag: "Ejemplo",
+    levelLabel: "Riesgo alto",
+    outOf: "de 100",
+    supported: "Afirmaciones respaldadas",
+    signals: "Contenido con señales de persuasión",
+    seeExample: "Ver un análisis real →"
   },
   dashboard: {
     metaTitle: "Veredicto — Diagnóstico del video",
@@ -155,23 +173,32 @@ const en: Dictionary = {
     title: "Understand how trustworthy a video is before acting on it.",
     subtitle:
       "We check the key claims against available sources and explain what deserves a closer look.",
-    steps: [
-      {
-        title: "Paste the link",
-        detail: "We accept public YouTube videos with subtitles available."
-      },
-      {
-        title: "We cross-check with sources",
-        detail:
-          "We extract the key claims and compare them with public evidence. It takes a few minutes."
-      },
-      {
-        title: "Decide with context",
-        detail: "You get an alert score, persuasion signals, and concrete advice before acting."
-      }
-    ],
-    disclaimer:
-      "Veredicto analyzes content; it does not judge people. Results are indicative, depend on publicly available evidence, and are not professional advice."
+    visualMatch: "Matches",
+    visualMismatch: "Contradicted",
+    visualSource: "Independent source",
+    visualClaim: "What the video says",
+    methodology: {
+      title: "How the analysis works",
+      items: [
+        {
+          title: "We read what the video says",
+          detail: "We use the public subtitles and identify the key claims that can be verified."
+        },
+        {
+          title: "We search for public evidence",
+          detail:
+            "We check each claim against available sources: media outlets, official bodies, and public documentation."
+        },
+        {
+          title: "We calculate the alert score",
+          detail:
+            "A higher score means more caution. We add persuasion signals such as urgency or emotional pressure."
+        }
+      ],
+      limitsTitle: "Keep in mind",
+      limits:
+        "The analysis depends on the public evidence available at the time and may be incomplete or outdated."
+    }
   },
   form: {
     title: "Analyze a YouTube video",
@@ -181,7 +208,16 @@ const en: Dictionary = {
     hint: "Paste a public link with subtitles available.",
     errorTitle: "We couldn't start the analysis",
     defaultError: "We couldn't start the analysis.",
-    submit: "Analyze video"
+    submit: "Analyze video",
+    expectation: "Free · no sign-up · the analysis takes a few minutes"
+  },
+  preview: {
+    exampleTag: "Example",
+    levelLabel: "High risk",
+    outOf: "out of 100",
+    supported: "Supported claims",
+    signals: "Content with persuasion signals",
+    seeExample: "See a real analysis →"
   },
   dashboard: {
     metaTitle: "Veredicto — Video diagnosis",

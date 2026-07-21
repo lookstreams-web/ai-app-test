@@ -1,9 +1,25 @@
-import { Container, Divider, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import {
+  Box,
+  Card,
+  CardSection,
+  Container,
+  Divider,
+  Group,
+  SimpleGrid,
+  Text,
+  Title
+} from "@mantine/core";
 import { CreateAnalysisForm } from "@/components/create-analysis-form";
 import { SiteHeader } from "@/components/site-header";
+import { StepVisualContrast, StepVisualLink } from "@/components/step-visuals";
+import { VerdictPreview } from "@/components/verdict-preview";
 import { getDictionary, resolveLocale } from "@/i18n/resolve";
+import styles from "./page.module.css";
 
 type PageProps = { searchParams: Promise<{ lang?: string | string[] }> };
+
+// UUID de un análisis real para enlazar desde el preview (pendiente de elegir).
+const exampleAnalysisId: string | null = null;
 
 export async function generateMetadata({ searchParams }: PageProps) {
   const dict = getDictionary(await resolveLocale(await searchParams));
@@ -14,41 +30,80 @@ export default async function HomePage({ searchParams }: PageProps) {
   const locale = await resolveLocale(await searchParams);
   const dict = getDictionary(locale);
   const home = dict.home;
+  const exampleHref = exampleAnalysisId
+    ? `/analysis/${exampleAnalysisId}?lang=${locale}`
+    : undefined;
+
+  const visuals = [
+    <StepVisualLink key="link" />,
+    <StepVisualContrast dict={home} key="contrast" />,
+    <VerdictPreview dict={dict.preview} href={exampleHref} key="verdict" />
+  ];
 
   return (
-    <>
-      <SiteHeader dict={dict.header} locale={locale} />
-      <Container size="md" pb="xl" pt={{ base: "xl", sm: 48 }}>
-        <Stack gap="xl">
-          <div>
-            <Title order={1} size="h1">
-              {home.title}
-            </Title>
-            <Text c="dimmed" fz="lg" mt="md" maw={720}>
-              {home.subtitle}
-            </Text>
+    <div className={styles.page}>
+      <div className={styles.hero}>
+        <div className={styles.navBar}>
+          <SiteHeader dict={dict.header} locale={locale} />
+        </div>
+        <Container size="lg" pb={40} pt={{ base: "md", sm: "lg" }}>
+          <Title order={1} size="h1" ta="center">
+            {home.title}
+          </Title>
+          <Text c="dimmed" fz="lg" maw={640} mt="md" mx="auto" ta="center">
+            {home.subtitle}
+          </Text>
+          <div className={styles.fadeIn}>
+            <Box mt="xl">
+              <CreateAnalysisForm dict={dict.form} locale={locale} />
+            </Box>
           </div>
-          <CreateAnalysisForm dict={dict.form} locale={locale} />
-          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-            {home.steps.map((step, index) => (
-              <Paper key={step.title} p="md" radius="md" withBorder>
-                <Text c="orange.7" fw={800} size="sm">
-                  {index + 1}. {step.title}
-                </Text>
-                <Text c="dimmed" mt={6} size="sm">
-                  {step.detail}
-                </Text>
-              </Paper>
-            ))}
-          </SimpleGrid>
-          <div>
-            <Divider mb="md" />
-            <Text c="dimmed" size="xs">
-              {home.disclaimer}
-            </Text>
-          </div>
-        </Stack>
+        </Container>
+      </div>
+      <Container component="section" pb="xl" pt="md" size="lg">
+        <Title mb="lg" order={2} size="h2" ta="center">
+          {home.methodology.title}
+        </Title>
+        <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+          {home.methodology.items.map((item, index) => (
+            <Card className={styles.lift} h="100%" key={item.title} padding="md" radius="md" withBorder>
+              <CardSection h={240} withBorder>
+                {visuals[index]}
+              </CardSection>
+              <Text fw={600} mt="md" size="sm">
+                {item.title}
+              </Text>
+              <Text c="dimmed" mt={6} size="sm">
+                {item.detail}
+              </Text>
+            </Card>
+          ))}
+        </SimpleGrid>
+        <Text c="dimmed" maw={640} mt="xl" mx="auto" size="sm" ta="center">
+          <Text component="span" fw={600} inherit>
+            {home.methodology.limitsTitle}:{" "}
+          </Text>
+          {home.methodology.limits}
+        </Text>
       </Container>
-    </>
+      <footer className={styles.footer}>
+        <Container pb="lg" size="lg">
+          <Divider mb="lg" />
+          <Group align="center" gap="md" justify="space-between">
+            <div>
+              <Text c="orange.7" fw={800}>
+                VEREDICTO
+              </Text>
+              <Text c="dimmed" size="sm">
+                {dict.header.tagline}
+              </Text>
+            </div>
+            <Text c="dimmed" size="xs">
+              © {new Date().getFullYear()} Veredicto
+            </Text>
+          </Group>
+        </Container>
+      </footer>
+    </div>
   );
 }

@@ -6,25 +6,22 @@ import type { Dictionary, Locale } from "@/i18n/dictionaries";
 export function SiteHeader({
   locale,
   dict,
-  showNewAnalysis = false
+  showNewAnalysis = false,
+  onDark = false
 }: {
   locale: Locale;
   dict: Dictionary["header"];
   showNewAnalysis?: boolean;
+  onDark?: boolean;
 }) {
   const homeHref = `/?lang=${locale}`;
   return (
     <Container size="lg" py="md">
       <Group justify="space-between">
         <Anchor component={Link} href={homeHref} underline="never">
-          <Group gap={6}>
-            <Text c="orange.7" fw={800} size="lg">
-              VEREDICTO
-            </Text>
-            <Text c="dimmed" size="sm" visibleFrom="sm">
-              {dict.tagline}
-            </Text>
-          </Group>
+          <Text c={onDark ? "orange.5" : "orange.7"} fw={800} size="lg">
+            VEREDICTO
+          </Text>
         </Anchor>
         <Group gap="sm">
           {showNewAnalysis ? (
