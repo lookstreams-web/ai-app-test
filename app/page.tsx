@@ -48,7 +48,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         <div className={styles.navBar}>
           <SiteHeader dict={dict.header} locale={locale} />
         </div>
-        <Container size="lg" pb={40} pt={{ base: "md", sm: "lg" }}>
+        <Container size="lg" pb={40} pt={{ base: 40, sm: 72 }}>
           <Title order={1} size="h1" ta="center">
             {home.title}
           </Title>
@@ -62,7 +62,7 @@ export default async function HomePage({ searchParams }: PageProps) {
           </div>
         </Container>
       </div>
-      <Container component="section" pb="xl" pt="md" size="lg">
+      <Container component="section" pb="xl" pt={{ base: "xl", sm: 56 }} size="lg">
         <Title mb="lg" order={2} size="h2" ta="center">
           {home.methodology.title}
         </Title>
