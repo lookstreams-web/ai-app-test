@@ -64,7 +64,7 @@ function reportCopy(language: OutputLanguage) {
       analysisTitle: (score: number) => `ANALYSIS: the alert score is ${score} out of 100 based on the reviewed evidence.`,
       immediateAdvice: (commercial: boolean) => commercial
         ? "Before paying, verify the main promise, the total price, and the conditions."
-        : "Use this video as a starting point: separate facts from opinions and check the primary source.",
+        : "Use this content as a starting point: separate facts from opinions and check the primary source.",
       actions: (commercial: boolean, sensitive: boolean) => commercial
         ? [
             "Ask for the original source behind the figure.",
@@ -82,13 +82,13 @@ function reportCopy(language: OutputLanguage) {
       contradictionExplanation: "This claim is incorrect according to the reviewed sources. This does not prove an intent to deceive.",
       contextExplanation: "Visible comments do not represent every customer and do not prove by themselves that something happened.",
       recommendation: (commercial: boolean) => commercial
-        ? "Do not buy or sign up based only on this video."
-        : "Use the video as an initial idea, not as your only source for making a decision.",
+        ? "Do not buy or sign up based only on this content."
+        : "Use the content as an initial idea, not as your only source for making a decision.",
       why: (hasContradiction: boolean, commercial: boolean) => hasContradiction
         ? "At least one important promise does not match the reviewed evidence."
         : commercial
           ? "It is worth comparing the main promise with an independent source."
-          : "The video may mix facts, opinions, and personal experiences.",
+          : "The content may mix facts, opinions, and personal experiences.",
       questions: (commercial: boolean) => commercial
         ? [
             "What complete data supports this promise?",
@@ -100,7 +100,7 @@ function reportCopy(language: OutputLanguage) {
             "Does the original source actually say the same thing?",
             "What important context might be missing?"
           ],
-      sourceUsage: (claimOrigin: boolean) => claimOrigin ? "Verify what was said." : "Check a claim made in the video.",
+      sourceUsage: (claimOrigin: boolean) => claimOrigin ? "Verify what was said." : "Check a claim made in the content.",
       notices: [
         "This analysis evaluates the content and available sources, not the person's honesty.",
         "A positive or negative comment is only a signal until independent evidence supports it."
@@ -119,7 +119,7 @@ function reportCopy(language: OutputLanguage) {
     analysisTitle: (score: number) => `ANÁLISIS: el puntaje de alerta es ${score} sobre 100 según la evidencia revisada.`,
     immediateAdvice: (commercial: boolean) => commercial
       ? "Antes de pagar, comprueba la promesa principal, el precio total y las condiciones."
-      : "Toma este video como punto de partida: separa los hechos de las opiniones y revisa la fuente principal.",
+      : "Toma este contenido como punto de partida: separa los hechos de las opiniones y revisa la fuente principal.",
     actions: (commercial: boolean, sensitive: boolean) => commercial
       ? [
           "Pide la fuente original de la cifra.",
@@ -137,13 +137,13 @@ function reportCopy(language: OutputLanguage) {
     contradictionExplanation: "Esta afirmación es incorrecta según las fuentes consultadas. Esto no demuestra intención de engañar.",
     contextExplanation: "Los comentarios visibles no representan a todos los clientes y no prueban por sí solos que algo ocurrió.",
     recommendation: (commercial: boolean) => commercial
-      ? "No compres ni te registres basándote solo en este video."
-      : "Usa el video como una idea inicial, no como la única fuente para decidir.",
+      ? "No compres ni te registres basándote solo en este contenido."
+      : "Usa el contenido como una idea inicial, no como la única fuente para decidir.",
     why: (hasContradiction: boolean, commercial: boolean) => hasContradiction
       ? "Al menos una promesa importante no coincide con la evidencia consultada."
       : commercial
         ? "Conviene comparar la promesa principal con una fuente independiente."
-        : "El video puede mezclar hechos, opiniones y experiencias personales.",
+        : "El contenido puede mezclar hechos, opiniones y experiencias personales.",
     questions: (commercial: boolean) => commercial
       ? [
           "¿Qué datos completos respaldan esta promesa?",
@@ -155,7 +155,7 @@ function reportCopy(language: OutputLanguage) {
           "¿La fuente original dice realmente lo mismo?",
           "¿Qué contexto importante podría faltar?"
         ],
-    sourceUsage: (claimOrigin: boolean) => claimOrigin ? "Comprobar qué se dijo." : "Contrastar una afirmación del video.",
+    sourceUsage: (claimOrigin: boolean) => claimOrigin ? "Comprobar qué se dijo." : "Contrastar una afirmación del contenido.",
     notices: [
       "Este análisis evalúa el contenido y las fuentes disponibles, no la honestidad de la persona.",
       "Un comentario positivo o negativo es una pista hasta que exista evidencia independiente."

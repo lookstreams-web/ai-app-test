@@ -147,9 +147,9 @@ describe("adaptador público determinista", () => {
     expect(publicReport.diagnostico_final.afirmaciones.explicacion).toContain("Main promises");
     expect(publicReport.diagnostico_final.consejo_inmediato).toContain("Before paying");
     expect(publicReport.contenido_del_video.explicacion).toContain("may overlap");
-    expect(publicReport.consejo.recomendacion_principal).toBe("Do not buy or sign up based only on this video.");
+    expect(publicReport.consejo.recomendacion_principal).toBe("Do not buy or sign up based only on this content.");
     expect(publicReport.consejo.preguntas_que_puedes_hacer[0]).toBe("What complete data supports this promise?");
-    expect(publicReport.fuentes_principales[0]?.para_que_la_usamos).toBe("Check a claim made in the video.");
+    expect(publicReport.fuentes_principales[0]?.para_que_la_usamos).toBe("Check a claim made in the content.");
     expect(publicReport.avisos[0]).toContain("available sources");
     expect(internalReport.meta.language).toBe("en");
     expect(internalReport.recommendations[0]?.action).toBe("Verify the central promise before taking action.");

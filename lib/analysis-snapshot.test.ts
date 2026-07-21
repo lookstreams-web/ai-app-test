@@ -40,6 +40,22 @@ describe('snapshot público de análisis', () => {
     });
   });
 
+  it('tolera la etapa transcribing donde el input aún es el sobre audioPending', () => {
+    expect(buildSourceSnapshot(null, 'audioPending')).toEqual({
+      kind: 'voiceRecording',
+      url: null,
+      title: null,
+      channel: null,
+      recordedAt: null,
+    });
+  });
+
+  it('nunca expone la ruta del audio en el snapshot', () => {
+    const snapshot = buildSourceSnapshot({ kind: 'voiceRecording', title: 'x' }, 'audioPending');
+    expect(JSON.stringify(snapshot)).not.toContain('.webm');
+    expect(snapshot).not.toHaveProperty('audioPath');
+  });
+
   it('no presenta como fallo un error interno conservado durante un reintento', () => {
     expect(buildAnalysisError('queued', 'web_search_timeout')).toBeNull();
     expect(buildAnalysisError('researching', 'web_search_timeout')).toBeNull();

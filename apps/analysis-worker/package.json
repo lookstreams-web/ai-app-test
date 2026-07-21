@@ -13,6 +13,7 @@
   "dependencies": {
     "@motor/analysis-contracts": "workspace:*",
     "@motor/analysis-engine": "workspace:*",
+    "@motor/audio-transcription": "workspace:*",
     "@supabase/supabase-js": "^2.95.3",
     "dotenv": "^17.3.1",
     "pino": "^10.3.1",

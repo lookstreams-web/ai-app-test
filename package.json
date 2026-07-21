@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:youtube": "tsx scripts/test-youtube.ts",
     "test:watch": "vitest",
-    "typecheck": "pnpm --filter @motor/analysis-contracts build && pnpm --filter @motor/analysis-engine build && pnpm --filter @motor/analysis-worker typecheck && tsc --noEmit"
+    "typecheck": "pnpm --filter @motor/analysis-contracts build && pnpm --filter @motor/audio-transcription build && pnpm --filter @motor/analysis-engine build && pnpm --filter @motor/analysis-worker typecheck && tsc --noEmit"
   },
   "dependencies": {
     "@mantine/core": "^8.1.0",

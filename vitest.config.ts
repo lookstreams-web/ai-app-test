@@ -8,7 +8,8 @@ export default defineConfig({
     alias: {
       "@": root,
       "@motor/analysis-contracts": `${root}packages/analysis-contracts/src/index.ts`,
-      "@motor/analysis-engine": `${root}packages/analysis-engine/src/index.ts`
+      "@motor/analysis-engine": `${root}packages/analysis-engine/src/index.ts`,
+      "@motor/audio-transcription": `${root}packages/audio-transcription/src/index.ts`
     }
   },
   test: {

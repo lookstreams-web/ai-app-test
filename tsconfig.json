@@ -24,6 +24,7 @@
     "app/**/*.ts",
     "app/**/*.tsx",
     "components/**/*.tsx",
+    "hooks/**/*.ts",
     "i18n/**/*.ts",
     "lib/**/*.ts",
     "lib/**/*.tsx",

@@ -184,6 +184,6 @@ describe("orquestación", () => {
 
     expect(result.claims[0]?.explanation).toBe("We did not find enough evidence to verify this claim.");
     expect(result.public.diagnostico_final.titular).toMatch(/^PARTIAL RESULT:/);
-    expect(result.public.consejo.recomendacion_principal).toBe("Do not buy or sign up based only on this video.");
+    expect(result.public.consejo.recomendacion_principal).toBe("Do not buy or sign up based only on this content.");
   });
 });
