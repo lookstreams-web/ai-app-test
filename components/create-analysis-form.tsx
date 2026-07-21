@@ -3,8 +3,9 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Paper, Stack, Text, TextInput, Title } from "@mantine/core";
+import type { Dictionary, Locale } from "@/i18n/dictionaries";
 
-export function CreateAnalysisForm() {
+export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"]; locale: Locale }) {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -21,11 +22,10 @@ export function CreateAnalysisForm() {
         body: JSON.stringify({ sourceType: "youtube", url })
       });
       const body = await response.json();
-      if (!response.ok || !body.id)
-        throw new Error(body.error?.message ?? "No pudimos iniciar el análisis.");
-      router.push(`/analysis/${body.id}`);
+      if (!response.ok || !body.id) throw new Error(body.error?.message ?? dict.defaultError);
+      router.push(`/analysis/${body.id}?lang=${locale}`);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "No pudimos iniciar el análisis.");
+      setError(caught instanceof Error ? caught.message : dict.defaultError);
     } finally {
       setSubmitting(false);
     }
@@ -35,17 +35,16 @@ export function CreateAnalysisForm() {
     <Paper withBorder radius="lg" p={{ base: "md", sm: "xl" }} shadow="sm">
       <Stack gap="md">
         <div>
-          <Title order={2}>Analiza un video de YouTube</Title>
+          <Title order={2}>{dict.title}</Title>
           <Text c="dimmed" mt={6}>
-            Revisaremos lo que dice el video y las fuentes disponibles. El análisis no juzga a la
-            persona creadora.
+            {dict.description}
           </Text>
         </div>
         <form onSubmit={submit}>
           <Stack gap="sm">
             <TextInput
-              description="Pega un enlace público con subtítulos disponibles."
-              label="Enlace del video"
+              description={dict.hint}
+              label={dict.label}
               onChange={(event) => setUrl(event.currentTarget.value)}
               placeholder="https://www.youtube.com/watch?v=..."
               required
@@ -53,12 +52,12 @@ export function CreateAnalysisForm() {
               value={url}
             />
             {error ? (
-              <Alert color="red" title="No pudimos iniciar el análisis">
+              <Alert color="red" title={dict.errorTitle}>
                 {error}
               </Alert>
             ) : null}
             <Button color="orange" loading={submitting} size="md" type="submit">
-              Analizar video
+              {dict.submit}
             </Button>
           </Stack>
         </form>

@@ -16,6 +16,9 @@ import {
   Text,
   Title
 } from "@mantine/core";
+import type { Dictionary } from "@/i18n/dictionaries";
+
+type DashboardDict = Dictionary["dashboard"];
 
 type PublicItem = { texto: string; fuentes: string[] };
 
@@ -105,16 +108,6 @@ const pending = new Set([
   "synthesizing"
 ]);
 
-const stageLabels: Record<string, string> = {
-  queued: "En cola, comenzaremos en breve",
-  leased: "Preparando el análisis",
-  analyzing: "Analizando el contenido del video",
-  researching: "Buscando evidencia en fuentes públicas",
-  adjudicating: "Contrastando afirmaciones con la evidencia",
-  scoring: "Calculando los puntajes",
-  synthesizing: "Redactando el diagnóstico"
-};
-
 const levelColors: Record<string, string> = {
   bajo: "green",
   moderado: "yellow",
@@ -136,15 +129,22 @@ const conclusionColors: Record<string, string> = {
 };
 
 function humanize(value: string) {
-  return value.replaceAll("_", " ");
+  return value
+    .replaceAll("_", " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .toLowerCase();
 }
 
-function Metric({ label, value, color }: { label: string; value: number; color: string }) {
+function label(map: Record<string, string>, value: string) {
+  return map[value] ?? humanize(value);
+}
+
+function Metric({ label: name, value, color }: { label: string; value: number; color: string }) {
   return (
     <Stack gap={5}>
       <Group justify="space-between">
         <Text fw={600} size="sm">
-          {label}
+          {name}
         </Text>
         <Text fw={700} size="sm">
           {value}%
@@ -155,7 +155,15 @@ function Metric({ label, value, color }: { label: string; value: number; color: 
   );
 }
 
-function SourceLinks({ ids, sources }: { ids: string[]; sources: SourceMap }) {
+function SourceLinks({
+  ids,
+  sources,
+  dict
+}: {
+  ids: string[];
+  sources: SourceMap;
+  dict: DashboardDict;
+}) {
   const resolved = [...new Set(ids)]
     .map((id) => sources.get(id))
     .filter((source): source is PublicSource => Boolean(source));
@@ -164,7 +172,8 @@ function SourceLinks({ ids, sources }: { ids: string[]; sources: SourceMap }) {
     <Group gap="xs">
       {resolved.map((source, index) => (
         <Anchor href={source.enlace} key={source.id} rel="noreferrer" size="xs" target="_blank">
-          Ver fuente{resolved.length > 1 ? ` ${index + 1}` : ""}
+          {dict.viewSource}
+          {resolved.length > 1 ? ` ${index + 1}` : ""}
         </Anchor>
       ))}
     </Group>
@@ -175,12 +184,14 @@ function InsightCard({
   title,
   items,
   color,
-  sources
+  sources,
+  dict
 }: {
   title: string;
   items: PublicItem[];
   color: string;
   sources: SourceMap;
+  dict: DashboardDict;
 }) {
   return (
     <Paper withBorder p="md" radius="md">
@@ -192,20 +203,20 @@ function InsightCard({
           {items.map((item) => (
             <List.Item key={item.texto}>
               {item.texto}
-              <SourceLinks ids={item.fuentes} sources={sources} />
+              <SourceLinks dict={dict} ids={item.fuentes} sources={sources} />
             </List.Item>
           ))}
         </List>
       ) : (
         <Text c="dimmed" size="sm">
-          Nada que destacar en esta categoría.
+          {dict.emptyCategory}
         </Text>
       )}
     </Paper>
   );
 }
 
-export function AnalysisDashboard({ id }: { id: string }) {
+export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDict }) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [networkError, setNetworkError] = useState<string | null>(null);
 
@@ -217,17 +228,14 @@ export function AnalysisDashboard({ id }: { id: string }) {
       try {
         const response = await fetch(`/api/analyses/${id}`, { cache: "no-store" });
         const body = await response.json();
-        if (!response.ok)
-          throw new Error(body.error?.message ?? "No pudimos consultar el análisis.");
+        if (!response.ok) throw new Error(body.error?.message ?? dict.queryError);
         if (!active) return;
         setSnapshot(body);
         setNetworkError(null);
         if (pending.has(body.status)) timer = setTimeout(load, 2000);
       } catch (caught) {
         if (active) {
-          setNetworkError(
-            caught instanceof Error ? caught.message : "No pudimos consultar el análisis."
-          );
+          setNetworkError(caught instanceof Error ? caught.message : dict.queryError);
         }
       }
     }
@@ -237,11 +245,11 @@ export function AnalysisDashboard({ id }: { id: string }) {
       active = false;
       if (timer) clearTimeout(timer);
     };
-  }, [id]);
+  }, [id, dict]);
 
   if (networkError) {
     return (
-      <Alert color="red" title="No pudimos cargar este análisis">
+      <Alert color="red" title={dict.loadErrorTitle}>
         {networkError}
       </Alert>
     );
@@ -258,8 +266,8 @@ export function AnalysisDashboard({ id }: { id: string }) {
 
   if (snapshot.status === "failed") {
     return (
-      <Alert color="red" title="El análisis no pudo completarse">
-        {snapshot.error?.message ?? "Inténtalo nuevamente con otro video."}
+      <Alert color="red" title={dict.failedTitle}>
+        {snapshot.error?.message ?? dict.failedFallback}
       </Alert>
     );
   }
@@ -270,9 +278,9 @@ export function AnalysisDashboard({ id }: { id: string }) {
         <Stack gap="md">
           <Group justify="space-between">
             <div>
-              <Text fw={700}>Estamos preparando el diagnóstico</Text>
+              <Text fw={700}>{dict.preparingTitle}</Text>
               <Text c="dimmed" size="sm">
-                {stageLabels[snapshot.status] ?? snapshot.status}
+                {dict.stages[snapshot.status] ?? snapshot.status}
               </Text>
             </div>
             <Badge color="blue" variant="light">
@@ -282,7 +290,7 @@ export function AnalysisDashboard({ id }: { id: string }) {
           <Progress animated value={snapshot.progress} />
           {snapshot.error ? (
             <Text c="dimmed" size="xs">
-              El intento anterior no se completó; lo estamos reintentando automáticamente.
+              {dict.retryNote}
             </Text>
           ) : null}
         </Stack>
@@ -307,9 +315,8 @@ export function AnalysisDashboard({ id }: { id: string }) {
   return (
     <Stack gap="xl">
       {diagnosis.estado_de_la_revision === "requiere_revision_humana" ? (
-        <Alert color="red" title="Este diagnóstico requiere revisión humana">
-          Detectamos una contradicción importante o una posible acción oficial. No tomes decisiones
-          basándote solo en el puntaje.
+        <Alert color="red" title={dict.humanReviewTitle}>
+          {dict.humanReviewBody}
         </Alert>
       ) : null}
 
@@ -317,10 +324,11 @@ export function AnalysisDashboard({ id }: { id: string }) {
         <Stack gap="md">
           <Group justify="space-between">
             <Badge color={levelColors[diagnosis.nivel] ?? "gray"} variant="filled">
-              {humanize(diagnosis.nivel)}
+              {label(dict.levels, diagnosis.nivel)}
             </Badge>
             <Text c="gray.3" size="sm">
-              {diagnosis.evidencia_revisada_pct}% de evidencia revisada
+              {diagnosis.evidencia_revisada_pct}
+              {dict.evidenceReviewedSuffix}
             </Text>
           </Group>
           <Title c="white" order={1}>
@@ -336,21 +344,21 @@ export function AnalysisDashboard({ id }: { id: string }) {
         <Paper withBorder p="lg" radius="lg">
           <Group gap="xs">
             <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
-              Puntaje de alerta
+              {dict.scoreTitle}
             </Text>
             {provisional ? (
               <Badge color="yellow" size="sm" variant="light">
-                Provisional
+                {dict.provisionalBadge}
               </Badge>
             ) : null}
           </Group>
           {diagnosis.puntaje_de_alerta_pct === null ? (
             <>
               <Text fw={700} fz={40} mt="xs">
-                Sin puntaje
+                {dict.noScore}
               </Text>
               <Text c="dimmed" size="sm">
-                La evidencia revisada no alcanza para calcular un puntaje confiable.
+                {dict.noScoreNote}
               </Text>
             </>
           ) : (
@@ -358,12 +366,12 @@ export function AnalysisDashboard({ id }: { id: string }) {
               <Title order={2} size={64}>
                 {diagnosis.puntaje_de_alerta_pct}
               </Title>
-              <Text mb={12}>de 100</Text>
+              <Text mb={12}>{dict.scoreOutOf}</Text>
             </Group>
           )}
           {provisional ? (
             <Text c="dimmed" size="xs" mb="xs">
-              Revisión parcial: refleja únicamente lo que sí se pudo revisar.
+              {dict.provisionalNote}
             </Text>
           ) : null}
           <Text>{diagnosis.consejo_inmediato}</Text>
@@ -371,27 +379,27 @@ export function AnalysisDashboard({ id }: { id: string }) {
 
         <Paper withBorder p="lg" radius="lg">
           <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
-            Afirmaciones importantes
+            {dict.claimsTitle}
           </Text>
           <Stack gap="sm" mt="md">
             <Metric
               color="green"
-              label="Respaldadas"
+              label={dict.claimSupported}
               value={diagnosis.afirmaciones.respaldadas_pct}
             />
             <Metric
               color="yellow"
-              label="Sin contexto"
+              label={dict.claimNoContext}
               value={diagnosis.afirmaciones.incompletas_o_sin_contexto_pct}
             />
             <Metric
               color="red"
-              label="No coinciden"
+              label={dict.claimMismatch}
               value={diagnosis.afirmaciones.incorrectas_segun_fuentes_pct}
             />
             <Metric
               color="gray"
-              label="Sin comprobar"
+              label={dict.claimUnverified}
               value={diagnosis.afirmaciones.sin_comprobar_pct}
             />
           </Stack>
@@ -404,17 +412,17 @@ export function AnalysisDashboard({ id }: { id: string }) {
       <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
         <Paper withBorder p="lg" radius="lg">
           <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
-            Señales de persuasión
+            {dict.signalsTitle}
           </Text>
           <Stack gap="sm" mt="md">
             <Metric
               color="orange"
-              label="Contenido con señales"
+              label={dict.signalContent}
               value={manipulation.contenido_con_senales_pct}
             />
             <Metric
               color="orange"
-              label="Urgencia o presión"
+              label={dict.signalUrgency}
               value={manipulation.urgencia_o_presion_pct}
             />
           </Stack>
@@ -422,7 +430,7 @@ export function AnalysisDashboard({ id }: { id: string }) {
             <Group gap="xs" mt="md">
               {manipulation.senales_principales.map((signal) => (
                 <Badge color="gray" key={signal} variant="light">
-                  {humanize(signal)}
+                  {label(dict.techniques, signal)}
                 </Badge>
               ))}
             </Group>
@@ -434,27 +442,27 @@ export function AnalysisDashboard({ id }: { id: string }) {
 
         <Paper withBorder p="lg" radius="lg">
           <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
-            De qué está hecho el video
+            {dict.compositionTitle}
           </Text>
           <Stack gap="sm" mt="md">
             <Metric
               color="blue"
-              label="Venta o promoción"
+              label={dict.compositionPromotion}
               value={composition.venta_o_promocion_pct}
             />
             <Metric
               color="blue"
-              label="Información útil"
+              label={dict.compositionUseful}
               value={composition.informacion_util_pct}
             />
             <Metric
               color="blue"
-              label="Información útil con respaldo"
+              label={dict.compositionBacked}
               value={composition.informacion_util_con_respaldo_pct}
             />
             <Metric
               color="blue"
-              label="Urgencia o presión"
+              label={dict.compositionUrgency}
               value={composition.urgencia_o_presion_pct}
             />
           </Stack>
@@ -465,34 +473,37 @@ export function AnalysisDashboard({ id }: { id: string }) {
       </SimpleGrid>
 
       <div>
-        <Title order={2}>Qué encontramos</Title>
+        <Title order={2}>{dict.foundTitle}</Title>
         <SimpleGrid cols={{ base: 1, md: 3 }} mt="md">
           <InsightCard
             color="green"
+            dict={dict}
             items={result.resumen.lo_que_aporta}
             sources={sources}
-            title="Lo que aporta"
+            title={dict.cardContributes}
           />
           <InsightCard
             color="orange"
+            dict={dict}
             items={result.resumen.ten_cuidado_con}
             sources={sources}
-            title="Ten cuidado con"
+            title={dict.cardCareful}
           />
           <InsightCard
             color="gray"
+            dict={dict}
             items={result.resumen.no_pudimos_comprobar}
             sources={sources}
-            title="No pudimos comprobar"
+            title={dict.cardUnverified}
           />
         </SimpleGrid>
       </div>
 
       {result.contrastes.length ? (
         <div>
-          <Title order={2}>Contraste de afirmaciones</Title>
+          <Title order={2}>{dict.contrastTitle}</Title>
           <Text c="dimmed" mt={4}>
-            Comparamos lo dicho con la evidencia disponible.
+            {dict.contrastSubtitle}
           </Text>
           <Stack mt="md">
             {result.contrastes.map((contrast) => (
@@ -504,7 +515,7 @@ export function AnalysisDashboard({ id }: { id: string }) {
               >
                 <Group justify="space-between" mb="md">
                   <Badge color={conclusionColors[contrast.conclusion] ?? "gray"}>
-                    {humanize(contrast.conclusion)}
+                    {label(dict.conclusions, contrast.conclusion)}
                   </Badge>
                   <Text c="dimmed" size="sm">
                     {contrast.momento_del_video}
@@ -513,13 +524,13 @@ export function AnalysisDashboard({ id }: { id: string }) {
                 <SimpleGrid cols={{ base: 1, md: 2 }}>
                   <div>
                     <Text c="dimmed" size="xs" fw={700}>
-                      EL VIDEO DICE
+                      {dict.videoSays}
                     </Text>
                     <Text fw={600}>&ldquo;{contrast.dice}&rdquo;</Text>
                   </div>
                   <div>
                     <Text c="dimmed" size="xs" fw={700}>
-                      ENCONTRAMOS
+                      {dict.weFound}
                     </Text>
                     <Text>{contrast.encontramos}</Text>
                   </div>
@@ -529,7 +540,7 @@ export function AnalysisDashboard({ id }: { id: string }) {
                     {contrast.explicacion}
                   </Text>
                 ) : null}
-                <SourceLinks ids={contrast.fuentes} sources={sources} />
+                <SourceLinks dict={dict} ids={contrast.fuentes} sources={sources} />
               </Paper>
             ))}
           </Stack>
@@ -538,11 +549,11 @@ export function AnalysisDashboard({ id }: { id: string }) {
 
       {hasPublicContext ? (
         <div>
-          <Title order={2}>Contexto público de la persona creadora</Title>
+          <Title order={2}>{dict.contextTitle}</Title>
           {publicContext.que_revisamos.length ? (
             <Group gap="xs" mt="xs">
               <Text c="dimmed" size="sm">
-                Qué revisamos:
+                {dict.contextReviewed}
               </Text>
               {publicContext.que_revisamos.map((place) => (
                 <Badge color="gray" key={place} variant="light">
@@ -554,21 +565,24 @@ export function AnalysisDashboard({ id }: { id: string }) {
           <SimpleGrid cols={{ base: 1, md: 3 }} mt="md">
             <InsightCard
               color="green"
+              dict={dict}
               items={publicContext.lo_positivo_comprobado}
               sources={sources}
-              title="Lo positivo comprobado"
+              title={dict.contextPositive}
             />
             <InsightCard
               color="orange"
+              dict={dict}
               items={publicContext.alertas_comprobadas}
               sources={sources}
-              title="Alertas comprobadas"
+              title={dict.contextAlerts}
             />
             <InsightCard
               color="gray"
+              dict={dict}
               items={publicContext.comentarios_que_solo_son_opiniones}
               sources={sources}
-              title="Comentarios que solo son opiniones"
+              title={dict.contextOpinions}
             />
           </SimpleGrid>
           <Text c="dimmed" mt="md" size="xs">
@@ -578,7 +592,7 @@ export function AnalysisDashboard({ id }: { id: string }) {
       ) : null}
 
       <Paper withBorder p="lg" radius="lg">
-        <Title order={2}>Antes de decidir</Title>
+        <Title order={2}>{dict.adviceTitle}</Title>
         <Text mt="xs">{result.consejo.recomendacion_principal}</Text>
         <Text c="dimmed" mt="xs">
           {result.consejo.por_que}
@@ -591,7 +605,7 @@ export function AnalysisDashboard({ id }: { id: string }) {
         {result.consejo.preguntas_que_puedes_hacer.length ? (
           <>
             <Text fw={600} mt="md">
-              Preguntas que puedes hacer
+              {dict.questionsTitle}
             </Text>
             <List mt="xs">
               {result.consejo.preguntas_que_puedes_hacer.map((question) => (
@@ -605,7 +619,7 @@ export function AnalysisDashboard({ id }: { id: string }) {
       {result.fuentes_principales.length ? (
         <div>
           <Divider mb="md" />
-          <Title order={3}>Fuentes principales</Title>
+          <Title order={3}>{dict.sourcesTitle}</Title>
           <Stack gap="xs" mt="sm">
             {result.fuentes_principales.map((source) => (
               <Anchor href={source.enlace} key={source.id} rel="noreferrer" target="_blank">

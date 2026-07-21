@@ -1,25 +1,39 @@
 import Link from "next/link";
 import { Anchor, Button, Container, Group, Text } from "@mantine/core";
+import { LanguageToggle } from "@/components/language-toggle";
+import type { Dictionary, Locale } from "@/i18n/dictionaries";
 
-export function SiteHeader({ showNewAnalysis = false }: { showNewAnalysis?: boolean }) {
+export function SiteHeader({
+  locale,
+  dict,
+  showNewAnalysis = false
+}: {
+  locale: Locale;
+  dict: Dictionary["header"];
+  showNewAnalysis?: boolean;
+}) {
+  const homeHref = `/?lang=${locale}`;
   return (
     <Container size="lg" py="md">
       <Group justify="space-between">
-        <Anchor component={Link} href="/" underline="never">
+        <Anchor component={Link} href={homeHref} underline="never">
           <Group gap={6}>
             <Text c="orange.7" fw={800} size="lg">
               VEREDICTO
             </Text>
             <Text c="dimmed" size="sm" visibleFrom="sm">
-              Análisis con evidencia
+              {dict.tagline}
             </Text>
           </Group>
         </Anchor>
-        {showNewAnalysis ? (
-          <Button color="orange" component={Link} href="/" size="xs" variant="light">
-            Analizar otro video
-          </Button>
-        ) : null}
+        <Group gap="sm">
+          {showNewAnalysis ? (
+            <Button color="orange" component={Link} href={homeHref} size="xs" variant="light">
+              {dict.newAnalysis}
+            </Button>
+          ) : null}
+          <LanguageToggle locale={locale} />
+        </Group>
       </Group>
     </Container>
   );
