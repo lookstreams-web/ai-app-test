@@ -4,6 +4,10 @@ Contrato entre el motor de análisis, el backend y la interfaz de usuario. Defin
 
 Los JSON de `docs/` son la referencia humana de comportamiento. La fuente de verdad ejecutable será el schema de Zod; ante una discrepancia, prevalece el schema.
 
+## Idioma del diagnóstico
+
+`POST /api/analyses` acepta `outputLanguage: "es" | "en"`. El campo es opcional y su valor predeterminado es `"es"`. El idioma se propaga a todos los agentes y a las plantillas deterministas del reporte público. Los nombres de las claves JSON, los códigos y los valores enum no cambian entre idiomas.
+
 ## Archivos de referencia
 
 | Archivo | Propósito |

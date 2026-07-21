@@ -25,5 +25,26 @@ describe('buildYoutubeAnalysisInput', () => {
       startSeconds: 2,
       endSeconds: 5,
     });
+    expect(input.options.outputLanguage).toBe('es');
+  });
+
+  it('propaga inglés a las opciones que consume el motor', () => {
+    const input = buildYoutubeAnalysisInput('https://www.youtube.com/watch?v=dQw4w9WgXcQ', {
+      videoId: 'dQw4w9WgXcQ',
+      title: 'Test video',
+      language: 'es',
+      channelName: 'Test channel',
+      channelUrl: null,
+      fullText: 'Contenido original',
+      segments: [{ text: 'Contenido original', offsetSeconds: 0, durationSeconds: 2 }],
+    }, 'en');
+
+    expect(input.options).toMatchObject({
+      maxClaims: 3,
+      webResearch: true,
+      publicContext: true,
+      outputLanguage: 'en',
+      timeBudgetMs: 600_000,
+    });
   });
 });

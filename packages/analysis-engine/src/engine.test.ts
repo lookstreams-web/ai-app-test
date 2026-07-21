@@ -94,4 +94,53 @@ describe("orquestación", () => {
     expect(result.claims[0]?.outcome).toBe("insufficientEvidence");
     expect(result.legacyV1).not.toBeNull();
   });
+
+  it("localiza en inglés los fallbacks cuando una etapa falla", async () => {
+    const englishGateway: AgentGateway = {
+      ...gateway(),
+      async planClaims() {
+        return {
+          centralPromise: "Guaranteed results",
+          summary: "Main promise",
+          claims: [{
+            id: "claim-en",
+            text: "The offer guarantees results.",
+            quote: "resultados garantizados",
+            startSeconds: 70,
+            endSeconds: 74,
+            centrality: 1,
+            potentialHarm: 0.8,
+            actionInducement: 1,
+            verifiability: 1,
+            repetition: 0,
+            isCentralPromise: true,
+            sensitiveDomain: "none"
+          }]
+        };
+      },
+      async synthesize() {
+        return {
+          headline: "Partial result",
+          summary: "The main claim could not be verified.",
+          usefulPoints: [],
+          warnings: ["Evidence is missing."]
+        };
+      }
+    };
+    const engine = new DeterministicAnalysisEngine(englishGateway, {
+      maxClaims: 3,
+      claimConcurrency: 3,
+      emitLegacyV1: true,
+      generalModel: "gpt-5.6-terra",
+      judgeModel: "gpt-5.6-sol"
+    });
+    const result = await engine.analyze({
+      ...input,
+      options: { ...input.options, outputLanguage: "en" }
+    });
+
+    expect(result.claims[0]?.explanation).toBe("We did not find enough evidence to verify this claim.");
+    expect(result.public.diagnostico_final.titular).toMatch(/^PARTIAL RESULT:/);
+    expect(result.public.consejo.recomendacion_principal).toBe("Do not buy or sign up based only on this video.");
+  });
 });

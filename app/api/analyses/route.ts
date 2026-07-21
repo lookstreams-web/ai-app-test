@@ -27,7 +27,11 @@ export async function POST(req: Request) {
     }
 
     const transcript = await fetchYoutubeTranscript(parsed.data.url);
-    const input = buildYoutubeAnalysisInput(parsed.data.url, transcript);
+    const input = buildYoutubeAnalysisInput(
+      parsed.data.url,
+      transcript,
+      parsed.data.outputLanguage ?? 'es',
+    );
     const admin = createAdminClient();
     const { data, error } = await admin
       .from('analyses')

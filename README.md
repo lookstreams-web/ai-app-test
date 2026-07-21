@@ -87,16 +87,18 @@ Prueba rápida:
 ```bash
 curl -X POST http://localhost:3000/api/analyses \
   -H "Content-Type: application/json" \
-  -d '{"sourceType":"youtube","url":"https://www.youtube.com/watch?v=VIDEO_ID"}'
+  -d '{"sourceType":"youtube","url":"https://www.youtube.com/watch?v=VIDEO_ID","outputLanguage":"en"}'
 ```
 
 Consulta el progreso con `GET /api/analyses/{id}`.
+
+`outputLanguage` es opcional, acepta `es` o `en` y usa `es` de manera predeterminada. Cambia el idioma de los textos generados y de las plantillas públicas; las claves JSON y los valores enum permanecen estables para la UI.
 
 Para una prueba local completa sin depender todavía del rate limit de la API web, inicia el worker y ejecuta en otra terminal:
 
 ```bash
 pnpm dev:worker
-pnpm test:youtube -- "https://www.youtube.com/watch?v=VIDEO_ID"
+pnpm test:youtube -- "https://www.youtube.com/watch?v=VIDEO_ID" --lang en
 ```
 
 El comando muestra las etapas, el progreso y el diagnóstico público final. Encola directamente en el Supabase configurado en `.env`; úsalo solo para desarrollo.

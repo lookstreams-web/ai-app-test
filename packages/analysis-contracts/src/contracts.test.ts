@@ -28,6 +28,8 @@ describe("contratos compartidos", () => {
   it("acepta la entrada segmentada y rechaza opciones fuera de rango", () => {
     expect(analysisJobInputSchema.parse(validInput).source.videoId).toBe("abc123");
     expect(() => analysisJobInputSchema.parse({ ...validInput, options: { ...validInput.options, maxClaims: 6 } })).toThrow();
+    expect(analysisJobInputSchema.parse({ ...validInput, options: { ...validInput.options, outputLanguage: "en" } }).options.outputLanguage).toBe("en");
+    expect(() => analysisJobInputSchema.parse({ ...validInput, options: { ...validInput.options, outputLanguage: "fr" } })).toThrow();
   });
 
   it("conserva una prompt injection como texto no confiable", () => {

@@ -84,7 +84,7 @@ export const analysisJobInputSchema = z.object({
     maxClaims: z.number().int().min(1).max(5).default(3),
     webResearch: z.boolean().default(true),
     publicContext: z.boolean().default(true),
-    outputLanguage: z.string().min(2).default("es"),
+    outputLanguage: z.enum(["es", "en"]).default("es"),
     timeBudgetMs: z.number().int().min(30_000).max(600_000).default(600_000)
   }).strict().default({
     maxClaims: 3,

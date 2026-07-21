@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnalysisJobInput, Evidence } from "@motor/analysis-contracts";
-import { buildPublicDiagnosis, type ReportParts } from "./adapters.js";
+import { buildInternalReport, buildPublicDiagnosis, type ReportParts } from "./adapters.js";
 import { calculateGlobalRisk } from "./scoring.js";
 import type { ScoredClaim } from "./types.js";
 
@@ -83,5 +83,75 @@ describe("adaptador público determinista", () => {
     expect(report.diagnostico_final.estado_de_la_revision).toBe("parcial");
     expect(report.fuentes_principales[0]?.id).toBe("evidence-c1");
     expect(report.contexto_publico.lo_positivo_comprobado).toEqual([]);
+  });
+
+  it("genera plantillas públicas e internas completamente en inglés", () => {
+    const englishInput: AnalysisJobInput = {
+      ...input,
+      options: { ...input.options, outputLanguage: "en" }
+    };
+    const claim = {
+      ...scored("c1", "contradicted", 1),
+      text: "The offer guarantees results.",
+      explanation: "The reviewed source contradicts the claim."
+    };
+    const score = calculateGlobalRisk([
+      { category: "factualRisk", score: 55, coverage: 0.87 },
+      { category: "manipulationPersuasionRisk", score: 55, coverage: 0.87 },
+      { category: "crossVideoPatternRisk", score: 55, coverage: 0.87 },
+      { category: "transparencyRisk", score: 55, coverage: 0.87 },
+      { category: "corroboratedPublicRisk", score: 55, coverage: 0.87 },
+      { category: "audienceEvidenceRisk", score: 55, coverage: 0.87 }
+    ]);
+    const parts: ReportParts = {
+      runId: "run-en",
+      input: englishInput,
+      score,
+      claims: [claim],
+      evidence: [source(1)],
+      discourse: {
+        summary: "The video uses sales framing.",
+        marketingPromotionPct: 40,
+        candidateValuePct: 45,
+        urgencyExposurePct: 15,
+        persuasionExposurePct: 30,
+        persuasionRiskScore: 55,
+        coverage: 1,
+        findings: []
+      },
+      context: {
+        identity: { status: "confirmed", confidence: 1, attributionSignals: [] },
+        reviewedPlaces: ["YouTube", "public web"],
+        positiveCorroborated: [], adverseCorroborated: [], opinionSignals: [],
+        crossVideoRiskScore: 55, crossVideoCoverage: 1,
+        transparencyRiskScore: 55, transparencyCoverage: 1,
+        publicRiskScore: 55, publicRiskCoverage: 1,
+        audienceEvidenceRiskScore: 55, audienceEvidenceCoverage: 1,
+        evidence: [], limitations: []
+      },
+      synthesis: {
+        headline: "Evidence review",
+        summary: "The main claim is contradicted by the reviewed evidence.",
+        usefulPoints: ["The video explains its proposed process."],
+        warnings: ["The promised result is not supported."]
+      },
+      finalStatus: "completed",
+      modelGeneral: "gpt-5.6-terra",
+      modelJudge: "gpt-5.6-sol"
+    };
+
+    const publicReport = buildPublicDiagnosis(parts);
+    const internalReport = buildInternalReport(parts);
+
+    expect(publicReport.diagnostico_final.titular).toMatch(/^ALERT:/);
+    expect(publicReport.diagnostico_final.afirmaciones.explicacion).toContain("Main promises");
+    expect(publicReport.diagnostico_final.consejo_inmediato).toContain("Before paying");
+    expect(publicReport.contenido_del_video.explicacion).toContain("may overlap");
+    expect(publicReport.consejo.recomendacion_principal).toBe("Do not buy or sign up based only on this video.");
+    expect(publicReport.consejo.preguntas_que_puedes_hacer[0]).toBe("What complete data supports this promise?");
+    expect(publicReport.fuentes_principales[0]?.para_que_la_usamos).toBe("Check a claim made in the video.");
+    expect(publicReport.avisos[0]).toContain("available sources");
+    expect(internalReport.meta.language).toBe("en");
+    expect(internalReport.recommendations[0]?.action).toBe("Verify the central promise before taking action.");
   });
 });

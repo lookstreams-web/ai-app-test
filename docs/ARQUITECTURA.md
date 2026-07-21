@@ -5,10 +5,11 @@ La app Next.js se encarga de recibir el enlace, obtener el transcript y crear el
 ## Flujo
 
 ```text
-POST /api/analyses { sourceType: "youtube", url }
+POST /api/analyses { sourceType: "youtube", url, outputLanguage?: "es" | "en" }
   → rate limit por IP hasheada
   → youtube-transcript + oEmbed
   → buildYoutubeAnalysisInput()
+  → propaga options.outputLanguage a todos los agentes y adaptadores
   → validación con @motor/analysis-contracts
   → INSERT analyses(input, status = queued)
   → analysis-worker reserva el trabajo
