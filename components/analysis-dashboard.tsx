@@ -97,6 +97,7 @@ type AnalysisSource = {
   kind?: "voiceRecording";
   url: string | null;
   title: string | null;
+  recordedAt?: string | null;
   channel: {
     name: string;
     url: string | null;
@@ -206,18 +207,30 @@ function SourceLinks({
   );
 }
 
-function SourceInfo({ source, dict }: { source: AnalysisSource | null; dict: DashboardDict }) {
+function formatRecordedAt(iso: string | null | undefined, locale: string): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "es", {
+    dateStyle: "long",
+    timeStyle: "short"
+  }).format(date);
+}
+
+function SourceInfo({ source, dict, locale }: { source: AnalysisSource | null; dict: DashboardDict; locale: string }) {
   if (!source) return null;
 
-  // Grabación de voz: no hay video ni canal público que enlazar.
+  // Grabación de voz: no hay video ni canal público que enlazar. La fecha y hora
+  // de la grabación son su identidad; el título genérico queda como fallback.
   if (source.kind === "voiceRecording") {
+    const recordedAt = formatRecordedAt(source.recordedAt, locale);
     return (
       <div>
         <Text c="dimmed" fw={700} size="xs" tt="uppercase">
           {dict.voiceSourceLabel}
         </Text>
         <Text fw={700} fz="xl">
-          {source.title ?? dict.voiceSourceLabel}
+          {recordedAt ?? source.title ?? dict.voiceSourceLabel}
         </Text>
       </div>
     );
@@ -301,7 +314,7 @@ function InsightCard({
   );
 }
 
-export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDict }) {
+export function AnalysisDashboard({ id, dict, locale }: { id: string; dict: DashboardDict; locale: string }) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [networkError, setNetworkError] = useState<string | null>(null);
 
@@ -359,7 +372,7 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
   if (snapshot.status === "failed") {
     return (
       <Stack gap="lg">
-        <SourceInfo dict={dict} source={snapshot.source} />
+        <SourceInfo dict={dict} locale={locale} source={snapshot.source} />
         <Alert color="red" title={dict.failedTitle}>
           {snapshot.error?.message ?? dict.failedFallback}
         </Alert>
@@ -372,7 +385,7 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
       <>
         <ScanPulses />
         <Stack gap="lg">
-          <SourceInfo dict={dict} source={snapshot.source} />
+          <SourceInfo dict={dict} locale={locale} source={snapshot.source} />
           <Paper withBorder p="xl" radius="lg">
             <Stack gap="md">
               <Group justify="space-between">
@@ -422,7 +435,7 @@ export function AnalysisDashboard({ id, dict }: { id: string; dict: DashboardDic
 
   return (
     <Stack gap="xl">
-      <SourceInfo dict={dict} source={snapshot.source} />
+      <SourceInfo dict={dict} locale={locale} source={snapshot.source} />
       {diagnosis.estado_de_la_revision === "requiere_revision_humana" ? (
         <Alert color="red" title={dict.humanReviewTitle}>
           {dict.humanReviewBody}
