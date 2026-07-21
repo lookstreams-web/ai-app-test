@@ -112,6 +112,22 @@ El campo `error` solo contiene un error terminal cuando `status` es `failed`. Du
 un reintento (`queued` u otro estado activo) se devuelve `null`, aunque internamente se
 conserve el último error para observabilidad.
 
+La cola también acepta una grabación pendiente de transcripción:
+
+```json
+{
+  "kind": "audioPending",
+  "audioPath": "analysis-id.webm",
+  "language": "es",
+  "outputLanguage": "es",
+  "recordedAt": "2026-07-21T12:00:00.000Z"
+}
+```
+
+`audioPath` es la ruta del objeto dentro del bucket privado `analysis-audio`. El
+worker descarga el audio, llama a `@motor/audio-transcription`, persiste el transcript
+y elimina el objeto. La web no llama directamente a OpenAI.
+
 `outputLanguage` es opcional, acepta `es` o `en` y usa `es` de manera predeterminada. Cambia el idioma de los textos generados y de las plantillas públicas; las claves JSON y los valores enum permanecen estables para la UI.
 
 Para una prueba local completa sin depender todavía del rate limit de la API web, inicia el worker y ejecuta en otra terminal:

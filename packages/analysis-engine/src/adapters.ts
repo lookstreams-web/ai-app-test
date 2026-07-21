@@ -168,6 +168,32 @@ function reportCopy(language: OutputLanguage) {
   };
 }
 
+function reportInput(input: AnalysisJobInput): Record<string, unknown> {
+  const transcript = {
+    title: input.source.title,
+    durationSeconds: input.source.durationSeconds,
+    observedTranscriptSeconds: input.transcript.segments.reduce(
+      (sum, segment) => sum + Math.max(0, segment.endSeconds - segment.startSeconds),
+      0
+    ),
+    mediaDurationCoverage: input.transcript.coverage
+  };
+
+  return input.source.kind === "youtube"
+    ? {
+        type: "youtube",
+        url: input.source.url,
+        videoId: input.source.videoId,
+        channelId: input.source.channel.id,
+        ...transcript
+      }
+    : {
+        type: "voiceRecording",
+        recordedAt: input.source.recordedAt,
+        ...transcript
+      };
+}
+
 function simplifyPublicSummary(summary: string, language: OutputLanguage): string {
   if (language === "en") {
     return summary
@@ -300,16 +326,7 @@ export function buildInternalReport(parts: ReportParts): InternalReport {
       language: parts.input.options.outputLanguage,
       isIllustrativeFixture: false
     },
-    input: {
-      type: "youtube",
-      url: parts.input.source.url,
-      videoId: parts.input.source.videoId,
-      title: parts.input.source.title,
-      channelId: parts.input.source.channel.id,
-      durationSeconds: parts.input.source.durationSeconds,
-      observedTranscriptSeconds: parts.input.transcript.segments.reduce((sum, segment) => sum + Math.max(0, segment.endSeconds - segment.startSeconds), 0),
-      mediaDurationCoverage: parts.input.transcript.coverage
-    },
+    input: reportInput(parts.input),
     globalRisk: {
       ...parts.score,
       unit: "risk_points_out_of_100_observed",
@@ -381,6 +398,9 @@ export function buildInternalReport(parts: ReportParts): InternalReport {
 }
 
 export function buildLegacyV1(input: AnalysisJobInput, publicReport: PublicDiagnosis, model: string): LegacyV1 {
+  if (input.source.kind !== "youtube") {
+    throw new Error("legacy_v1_only_supports_youtube");
+  }
   const factual = publicReport.diagnostico_final.afirmaciones;
   const persuasion = publicReport.diagnostico_final.posible_manipulacion;
   const emotionalAppeal = Math.round(persuasion.contenido_con_senales_pct * 0.5);

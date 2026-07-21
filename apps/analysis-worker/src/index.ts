@@ -5,6 +5,7 @@ import { config as loadDotEnv } from "dotenv";
 import pino from "pino";
 import { DeterministicAnalysisEngine, OpenAIAgentGateway } from "@motor/analysis-engine";
 import { loadConfig } from "./config.js";
+import { transcribeAudioWithPackage } from "./audio.js";
 import { SupabaseAnalysisRepository } from "./repository.js";
 import { createHealthServer } from "./server.js";
 import { AnalysisWorker } from "./worker.js";
@@ -33,7 +34,14 @@ const engine = new DeterministicAnalysisEngine(gateway, {
   generalModel: config.OPENAI_MODEL_GENERAL,
   judgeModel: config.OPENAI_MODEL_JUDGE
 });
-const worker = new AnalysisWorker(`worker-${randomUUID()}`, repository, engine, config, logger);
+const worker = new AnalysisWorker(
+  `worker-${randomUUID()}`,
+  repository,
+  engine,
+  transcribeAudioWithPackage,
+  config,
+  logger
+);
 const server = createHealthServer(repository, () => worker.isStarted);
 
 server.listen(config.PORT, "0.0.0.0", () => logger.info({ port: config.PORT }, "health_server_started"));
@@ -50,6 +58,7 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
 
 export * from "./config.js";
+export * from "./audio.js";
 export * from "./repository.js";
 export * from "./server.js";
 export * from "./worker.js";

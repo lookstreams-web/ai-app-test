@@ -339,7 +339,9 @@ export class DeterministicAnalysisEngine {
     } as const;
     const internal = buildInternalReport(parts);
     const publicReport = buildPublicDiagnosis(parts);
-    const legacyV1 = this.options.emitLegacyV1 ? buildLegacyV1(input, publicReport, this.options.generalModel) : null;
+    const legacyV1 = this.options.emitLegacyV1 && input.source.kind === "youtube"
+      ? buildLegacyV1(input, publicReport, this.options.generalModel)
+      : null;
     await progress("synthesizing", 100);
     return { internal, public: publicReport, legacyV1, claims, evidence: allEvidence, agentRuns: this.gateway.invocations, finalStatus };
   }

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  analysisQueueInputSchema,
   analysisJobInputSchema,
   internalReportSchema,
   publicDiagnosisSchema
@@ -26,10 +27,52 @@ const validInput = {
 
 describe("contratos compartidos", () => {
   it("acepta la entrada segmentada y rechaza opciones fuera de rango", () => {
-    expect(analysisJobInputSchema.parse(validInput).source.videoId).toBe("abc123");
+    const parsed = analysisJobInputSchema.parse(validInput);
+    expect(parsed.source.kind).toBe("youtube");
+    expect(parsed.source.kind === "youtube" ? parsed.source.videoId : null).toBe("abc123");
     expect(() => analysisJobInputSchema.parse({ ...validInput, options: { ...validInput.options, maxClaims: 6 } })).toThrow();
     expect(analysisJobInputSchema.parse({ ...validInput, options: { ...validInput.options, outputLanguage: "en" } }).options.outputLanguage).toBe("en");
     expect(() => analysisJobInputSchema.parse({ ...validInput, options: { ...validInput.options, outputLanguage: "fr" } })).toThrow();
+  });
+
+  it("acepta una grabación de voz ya transcrita", () => {
+    const parsed = analysisJobInputSchema.parse({
+      source: {
+        kind: "voiceRecording",
+        title: "Grabación de voz",
+        durationSeconds: 412,
+        recordedAt: null
+      },
+      transcript: {
+        language: "es",
+        origin: "speechToText",
+        coverage: 1,
+        segments: [{
+          id: "segment-1",
+          startSeconds: 0,
+          endSeconds: 300,
+          text: "Contenido de la grabación",
+          confidence: null
+        }]
+      },
+      options: { outputLanguage: "es", publicContext: false }
+    });
+
+    expect(parsed.source.kind).toBe("voiceRecording");
+    expect(parsed.transcript.origin).toBe("speechToText");
+    expect(parsed.options.publicContext).toBe(false);
+  });
+
+  it("acepta un sobre de audio pendiente y aplica el idioma de salida predeterminado", () => {
+    const parsed = analysisQueueInputSchema.parse({
+      kind: "audioPending",
+      audioPath: "recordings/analysis-id.webm",
+      language: "es",
+      recordedAt: null
+    });
+
+    expect(parsed.kind).toBe("audioPending");
+    expect(parsed.outputLanguage).toBe("es");
   });
 
   it("conserva una prompt injection como texto no confiable", () => {

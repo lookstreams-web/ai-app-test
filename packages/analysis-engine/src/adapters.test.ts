@@ -5,7 +5,7 @@ import { calculateGlobalRisk } from "./scoring.js";
 import type { ScoredClaim } from "./types.js";
 
 const input: AnalysisJobInput = {
-  source: { url: "https://youtube.com/watch?v=test", videoId: "test", title: "Prueba", durationSeconds: 600, channel: { id: "c1", name: "Canal", url: null } },
+  source: { kind: "youtube", url: "https://youtube.com/watch?v=test", videoId: "test", title: "Prueba", durationSeconds: 600, channel: { id: "c1", name: "Canal", url: null } },
   transcript: { language: "es", origin: "youtube", coverage: 1, segments: [{ id: "s1", startSeconds: 0, endSeconds: 600, text: "Contenido", confidence: 1 }] },
   options: { maxClaims: 3, webResearch: true, publicContext: true, outputLanguage: "es", timeBudgetMs: 600_000 }
 };

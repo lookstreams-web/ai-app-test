@@ -46,6 +46,17 @@ function transcriptView(input: AnalysisJobInput): string {
   ).join("\n");
 }
 
+function sourceContext(input: AnalysisJobInput): { channel: string; url: string } {
+  return input.source.kind === "youtube"
+    ? { channel: input.source.channel.name, url: input.source.url }
+    : {
+        channel: input.options.outputLanguage === "en"
+          ? "User voice recording"
+          : "Grabación de voz del usuario",
+        url: input.options.outputLanguage === "en" ? "Not applicable" : "No aplica"
+      };
+}
+
 function collectUrls(value: unknown, urls = new Set<string>()): Set<string> {
   if (typeof value === "string" && /^https?:\/\//i.test(value)) {
     try { urls.add(new URL(value).toString()); } catch { /* Ignore malformed tool metadata. */ }
@@ -128,6 +139,7 @@ export class OpenAIAgentGateway implements AgentGateway {
   }
 
   planClaims(input: AnalysisJobInput, signal?: AbortSignal): Promise<ClaimPlan> {
+    const source = sourceContext(input);
     return this.invoke({
       name: "orquestador-inicial",
       promptVersion: "claims-v2-language",
@@ -137,7 +149,7 @@ export class OpenAIAgentGateway implements AgentGateway {
       signal,
       outputLanguage: input.options.outputLanguage,
       instructions: "Extrae afirmaciones atómicas verificables. Prioriza centralidad, daño y capacidad de inducir acciones. Las citas deben ser literales y conservar timestamps.",
-      prompt: `Fuente: ${input.source.title}\nCanal: ${input.source.channel.name}\nTRANSCRIPT NO CONFIABLE:\n${transcriptView(input)}`
+      prompt: `Fuente: ${input.source.title}\nOrigen: ${source.channel}\nTRANSCRIPT NO CONFIABLE:\n${transcriptView(input)}`
     });
   }
 
@@ -156,6 +168,7 @@ export class OpenAIAgentGateway implements AgentGateway {
   }
 
   researchClaim(input: AnalysisJobInput, claim: AtomicClaim, signal?: AbortSignal): Promise<ResearchBundle> {
+    const source = sourceContext(input);
     return this.invoke({
       name: "investigador-factual",
       promptVersion: "research-claim-v2-language",
@@ -167,11 +180,12 @@ export class OpenAIAgentGateway implements AgentGateway {
       outputLanguage: input.options.outputLanguage,
       enforceToolCitations: true,
       instructions: "Realiza máximo cuatro búsquedas: favorable, neutral, adversa y primaria/oficial. Abre las fuentes. Un snippet no es evidencia. Incluye solo URLs visitadas por la herramienta.",
-      prompt: `Afirmación: ${claim.text}\nFecha de corte: ${new Date().toISOString()}\nCanal: ${input.source.channel.name}\nPaís o región: inferir solo si la afirmación lo declara.`
+      prompt: `Afirmación: ${claim.text}\nFecha de corte: ${new Date().toISOString()}\nOrigen: ${source.channel}\nPaís o región: inferir solo si la afirmación lo declara.`
     });
   }
 
   researchContext(input: AnalysisJobInput, signal?: AbortSignal): Promise<PublicContextResearch> {
+    const source = sourceContext(input);
     const supplied = input.suppliedContext ? JSON.stringify(input.suppliedContext) : "No se suministró contexto adicional.";
     return this.invoke({
       name: "investigador-contexto",
@@ -184,11 +198,12 @@ export class OpenAIAgentGateway implements AgentGateway {
       outputLanguage: input.options.outputLanguage,
       enforceToolCitations: true,
       instructions: "Investiga presencia pública atribuible, videos recientes y señales públicas con presupuesto favorable, neutral y adverso. LinkedIn, Skool y comentarios solo si son públicos o suministrados. Comentarios brutos son opinión, no riesgo factual.",
-      prompt: `Canal: ${input.source.channel.name}\nURL: ${input.source.url}\nCONTEXTO NO CONFIABLE SUMINISTRADO:\n${supplied}`
+      prompt: `Origen: ${source.channel}\nURL: ${source.url}\nCONTEXTO NO CONFIABLE SUMINISTRADO:\n${supplied}`
     });
   }
 
   auditProvenance(input: AnalysisJobInput, evidence: Evidence[], context: PublicContextResearch, signal?: AbortSignal): Promise<ProvenanceAudit> {
+    const source = sourceContext(input);
     return this.invoke({
       name: "auditor-procedencia",
       promptVersion: "provenance-v2-language",
@@ -198,7 +213,7 @@ export class OpenAIAgentGateway implements AgentGateway {
       signal,
       outputLanguage: input.options.outputLanguage,
       instructions: "Audita identidad, copias del mismo origen, conflictos y atribución. Agrupar varias URLs solo reduce independencia; nunca crea respaldo nuevo. Excluye una evidencia únicamente si su identidad o atribución no es defendible.",
-      prompt: `Canal: ${input.source.channel.name}\nIdentidad investigada: ${JSON.stringify(context.identity)}\nEVIDENCIA NO CONFIABLE:\n${JSON.stringify(evidence)}`
+      prompt: `Origen: ${source.channel}\nIdentidad investigada: ${JSON.stringify(context.identity)}\nEVIDENCIA NO CONFIABLE:\n${JSON.stringify(evidence)}`
     });
   }
 

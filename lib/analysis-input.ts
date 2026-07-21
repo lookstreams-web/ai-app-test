@@ -1,11 +1,17 @@
-import { analysisJobInputSchema, type AnalysisJobInput } from '@motor/analysis-contracts';
+import {
+  analysisJobInputSchema,
+  type AnalysisJobInput,
+  type YoutubeSource,
+} from '@motor/analysis-contracts';
 import type { YoutubeTranscriptResult } from '@/lib/youtube/transcript';
+
+export type YoutubeAnalysisJobInput = AnalysisJobInput & { source: YoutubeSource };
 
 export function buildYoutubeAnalysisInput(
   sourceUrl: string,
   transcript: YoutubeTranscriptResult,
   outputLanguage: 'es' | 'en' = 'es',
-): AnalysisJobInput {
+): YoutubeAnalysisJobInput {
   const segments = transcript.segments.map((segment, index) => ({
     id: `segment-${index + 1}`,
     startSeconds: segment.offsetSeconds,
@@ -17,6 +23,7 @@ export function buildYoutubeAnalysisInput(
 
   return analysisJobInputSchema.parse({
     source: {
+      kind: 'youtube',
       url: sourceUrl,
       videoId: transcript.videoId,
       title: transcript.title ?? 'Video de YouTube',
@@ -41,5 +48,5 @@ export function buildYoutubeAnalysisInput(
     options: {
       outputLanguage,
     },
-  });
+  }) as YoutubeAnalysisJobInput;
 }

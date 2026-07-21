@@ -7,6 +7,7 @@ export const urlSchema = z.url().refine((value) => /^https?:\/\//i.test(value), 
 export const analysisStatusSchema = z.enum([
   "queued",
   "leased",
+  "transcribing",
   "analyzing",
   "researching",
   "adjudicating",
@@ -57,18 +58,36 @@ const suppliedCommentSchema = z.object({
   samplingBucket: z.enum(["recent", "relevant", "supplied"]).default("supplied")
 }).strict();
 
+export const youtubeSourceSchema = z.object({
+  kind: z.literal("youtube"),
+  url: urlSchema,
+  videoId: z.string().min(1),
+  title: z.string().min(1),
+  durationSeconds: z.number().positive().nullable(),
+  channel: z.object({
+    id: z.string().min(1).nullable(),
+    name: z.string().min(1),
+    url: urlSchema.nullable().default(null)
+  }).strict()
+}).strict();
+
+export const voiceRecordingSourceSchema = z.object({
+  kind: z.literal("voiceRecording"),
+  title: z.string().min(1),
+  durationSeconds: z.number().positive().nullable(),
+  recordedAt: z.string().nullable().default(null)
+}).strict();
+
+export type YoutubeSource = z.infer<typeof youtubeSourceSchema>;
+export type VoiceRecordingSource = z.infer<typeof voiceRecordingSourceSchema>;
+
+const sourceSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value) || "kind" in value) return value;
+  return { ...value, kind: "youtube" };
+}, z.discriminatedUnion("kind", [youtubeSourceSchema, voiceRecordingSourceSchema]));
+
 export const analysisJobInputSchema = z.object({
-  source: z.object({
-    url: urlSchema,
-    videoId: z.string().min(1),
-    title: z.string().min(1),
-    durationSeconds: z.number().positive().nullable(),
-    channel: z.object({
-      id: z.string().min(1).nullable(),
-      name: z.string().min(1),
-      url: urlSchema.nullable().default(null)
-    }).strict()
-  }).strict(),
+  source: sourceSchema,
   transcript: z.object({
     language: z.string().min(2),
     origin: z.enum(["youtube", "speechToText", "manual", "unknown"]),
@@ -96,6 +115,23 @@ export const analysisJobInputSchema = z.object({
 }).strict();
 
 export type AnalysisJobInput = z.infer<typeof analysisJobInputSchema>;
+export type AnalysisSource = AnalysisJobInput["source"];
+
+export const audioJobEnvelopeSchema = z.object({
+  kind: z.literal("audioPending"),
+  audioPath: z.string().min(1),
+  language: z.enum(["es", "en"]),
+  outputLanguage: z.enum(["es", "en"]).default("es"),
+  recordedAt: z.string().nullable().default(null)
+}).strict();
+
+export const analysisQueueInputSchema = z.union([
+  analysisJobInputSchema,
+  audioJobEnvelopeSchema
+]);
+
+export type AudioJobEnvelope = z.infer<typeof audioJobEnvelopeSchema>;
+export type AnalysisQueueInput = z.infer<typeof analysisQueueInputSchema>;
 
 export const atomicClaimSchema = z.object({
   id: z.string().min(1),

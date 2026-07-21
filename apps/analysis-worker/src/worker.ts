@@ -1,6 +1,19 @@
 import { setTimeout as delay } from "node:timers/promises";
 import type { Logger } from "pino";
-import type { DeterministicAnalysisEngine, ProgressStage } from "@motor/analysis-engine";
+import type {
+  AnalysisArtifacts,
+  AnalysisRunOptions,
+  ProgressStage
+} from "@motor/analysis-engine";
+import type { AnalysisJobInput, AudioJobEnvelope } from "@motor/analysis-contracts";
+import {
+  analysisProgressAfterTranscription,
+  abortable,
+  buildVoiceAnalysisInput,
+  isAudioPending,
+  transcriptionProgress,
+  type TranscribeAudio
+} from "./audio.js";
 import type { WorkerConfig } from "./config.js";
 import type { AnalysisRepository, LeasedAnalysis } from "./repository.js";
 
@@ -11,7 +24,10 @@ export class AnalysisWorker {
   constructor(
     private readonly workerId: string,
     private readonly repository: AnalysisRepository,
-    private readonly engine: DeterministicAnalysisEngine,
+    private readonly engine: {
+      analyze(input: AnalysisJobInput, options?: AnalysisRunOptions): Promise<AnalysisArtifacts>;
+    },
+    private readonly transcribeAudio: TranscribeAudio,
     private readonly config: WorkerConfig,
     private readonly logger: Logger
   ) {}
@@ -23,7 +39,9 @@ export class AnalysisWorker {
   async processJob(job: LeasedAnalysis): Promise<void> {
     const log = this.logger.child({ analysisId: job.id, workerId: this.workerId, attempt: job.attempts });
     const controller = new AbortController();
-    const timeoutMs = Math.min(this.config.ANALYSIS_TIMEOUT_MS, job.input.options.timeBudgetMs);
+    const timeoutMs = isAudioPending(job.input)
+      ? this.config.ANALYSIS_TIMEOUT_MS
+      : Math.min(this.config.ANALYSIS_TIMEOUT_MS, job.input.options.timeBudgetMs);
     const timeout = setTimeout(() => controller.abort(new Error("analysis_timeout")), timeoutMs);
     const heartbeat = setInterval(() => {
       void this.repository.renewLease(job.id, this.workerId, this.config.LEASE_SECONDS).then((renewed) => {
@@ -34,11 +52,20 @@ export class AnalysisWorker {
     }, this.config.LEASE_RENEW_INTERVAL_MS);
 
     try {
-      const artifacts = await this.engine.analyze(job.input, {
+      let pendingAudio: AudioJobEnvelope | null = null;
+      let analysisInput: AnalysisJobInput;
+      if (isAudioPending(job.input)) {
+        pendingAudio = job.input;
+        analysisInput = await this.prepareAudioJob(job, pendingAudio, log, controller.signal);
+      } else {
+        analysisInput = job.input;
+      }
+      const artifacts = await this.engine.analyze(analysisInput, {
         signal: controller.signal,
         onProgress: async (stage: ProgressStage, progress: number) => {
-          await this.repository.setProgress(job.id, this.workerId, stage, progress);
-          log.info({ stage, progress }, "analysis_progress");
+          const mappedProgress = pendingAudio ? analysisProgressAfterTranscription(progress) : progress;
+          await this.repository.setProgress(job.id, this.workerId, stage, mappedProgress);
+          log.info({ stage, progress: mappedProgress }, "analysis_progress");
         }
       });
       await this.repository.complete(job.id, this.workerId, artifacts);
@@ -47,9 +74,46 @@ export class AnalysisWorker {
       const message = error instanceof Error ? error.message : "unknown_error";
       log.error({ error: message }, "analysis_failed");
       await this.repository.releaseOrRetry(job.id, this.workerId, message, this.config.MAX_ATTEMPTS);
+      if (
+        isAudioPending(job.input)
+        && job.attempts >= this.config.MAX_ATTEMPTS
+      ) {
+        await this.deleteAudioSafely(job.input.audioPath, log);
+      }
     } finally {
       clearInterval(heartbeat);
       clearTimeout(timeout);
+    }
+  }
+
+  private async prepareAudioJob(
+    job: LeasedAnalysis,
+    envelope: AudioJobEnvelope,
+    log: Logger,
+    signal: AbortSignal
+  ): Promise<AnalysisJobInput> {
+    await this.repository.setProgress(job.id, this.workerId, "transcribing", 1);
+    const audio = await this.repository.downloadAudio(envelope.audioPath);
+    const transcription = await abortable(this.transcribeAudio(audio, {
+      language: envelope.language,
+      signal,
+      onProgress: async (progress) => {
+        const mappedProgress = transcriptionProgress(progress);
+        await this.repository.setProgress(job.id, this.workerId, "transcribing", mappedProgress);
+        log.info({ stage: "transcribing", progress: mappedProgress }, "analysis_progress");
+      }
+    }), signal);
+    const input = buildVoiceAnalysisInput(envelope, transcription);
+    await this.repository.replaceInput(job.id, this.workerId, input);
+    await this.deleteAudioSafely(envelope.audioPath, log);
+    return input;
+  }
+
+  private async deleteAudioSafely(path: string, log: Logger): Promise<void> {
+    try {
+      await this.repository.deleteAudio(path);
+    } catch (error) {
+      log.warn({ error: error instanceof Error ? error.message : "unknown_error" }, "audio_cleanup_failed");
     }
   }
 

@@ -1,4 +1,5 @@
-export interface AnalysisSourceSnapshot {
+export interface YoutubeSourceSnapshot {
+  kind: 'youtube';
   url: string;
   title: string;
   channel: {
@@ -6,6 +7,16 @@ export interface AnalysisSourceSnapshot {
     url: string | null;
   };
 }
+
+export interface VoiceRecordingSourceSnapshot {
+  kind: 'voiceRecording';
+  url: null;
+  title: string;
+  channel: null;
+  recordedAt: string | null;
+}
+
+export type AnalysisSourceSnapshot = YoutubeSourceSnapshot | VoiceRecordingSourceSnapshot;
 
 export interface AnalysisErrorSnapshot {
   code: 'ANALYSIS_FAILED';
@@ -15,7 +26,19 @@ export interface AnalysisErrorSnapshot {
 export function buildSourceSnapshot(value: unknown): AnalysisSourceSnapshot | null {
   if (!value || typeof value !== 'object') return null;
   const source = value as Record<string, unknown>;
-  if (typeof source.url !== 'string' || typeof source.title !== 'string') return null;
+  if (typeof source.title !== 'string') return null;
+
+  if (source.kind === 'voiceRecording') {
+    return {
+      kind: 'voiceRecording',
+      url: null,
+      title: source.title,
+      channel: null,
+      recordedAt: typeof source.recordedAt === 'string' ? source.recordedAt : null,
+    };
+  }
+
+  if (typeof source.url !== 'string') return null;
 
   const rawChannel = source.channel;
   const channel = rawChannel && typeof rawChannel === 'object'
@@ -23,6 +46,7 @@ export function buildSourceSnapshot(value: unknown): AnalysisSourceSnapshot | nu
     : null;
 
   return {
+    kind: 'youtube',
     url: source.url,
     title: source.title,
     channel: {
