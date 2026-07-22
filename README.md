@@ -12,6 +12,42 @@ incertidumbre cuando no existen fuentes suficientes.
 
 Proyecto del equipo Eduardo, Joel y Jorge para OpenAI Build Week, julio de 2026.
 
+## Cómo colaboramos con Codex y GPT-5.6
+
+Codex fue nuestro compañero de ingeniería durante todo el proyecto. El equipo definió el
+problema, los límites éticos y las decisiones clave de producto: crear un consejero que
+contraste contenido sin acusar a las personas, diferenciar evidencia de opinión, mostrar la
+incertidumbre cuando falten fuentes y explicar los resultados con un lenguaje accesible.
+También decidimos la experiencia de usuario, la arquitectura asíncrona con Supabase y
+Railway, las reglas del puntaje y los criterios de aceptación. Codex no sustituyó estas
+decisiones: nos ayudó a convertirlas en una implementación comprobable.
+
+Codex aceleró nuestro flujo al transformar requisitos en un PRD, contratos JSON y schemas
+Zod; proponer y cuestionar la arquitectura multiagente; implementar el worker, la cola SQL y
+las integraciones; y generar pruebas para reintentos, fuentes duplicadas, evidencia
+insuficiente, idiomas y transcripción de voz. También nos ayudó a revisar cambios entre
+ramas, diagnosticar incompatibilidades del API, mantener alineados el backend y la UI, y
+verificar el despliegue en Railway.
+
+GPT-5.6 aporta la inteligencia del motor mediante agentes especializados que extraen
+afirmaciones, analizan el discurso, investigan evidencia pública, auditan la procedencia de
+las fuentes, arbitran contradicciones y redactan una síntesis fácil de entender. Para reducir
+alucinaciones, el modelo no decide por sí solo el puntaje final ni puede inventar porcentajes
+o enlaces: las salidas se validan con schemas y los resultados numéricos se calculan de forma
+determinista en TypeScript usando únicamente evidencia aprobada.
+
+Nuestro ciclo de colaboración fue iterativo:
+
+1. Eduardo, Joel y Jorge planteaban una necesidad de producto o ingeniería.
+2. Codex proponía alternativas, señalaba riesgos y producía una primera implementación.
+3. El equipo revisaba el resultado y tomaba las decisiones finales de producto, diseño y
+   arquitectura.
+4. Codex incorporaba el feedback, ejecutaba pruebas y ayudaba a verificar el flujo completo.
+
+Esta colaboración nos permitió dedicar más tiempo a la calidad del criterio, la experiencia
+del usuario y la seguridad del producto, mientras reducíamos el tiempo invertido en tareas
+repetitivas de implementación, integración y documentación.
+
 ## Qué ofrece
 
 - Análisis de videos públicos de YouTube mediante sus subtítulos.
