@@ -56,6 +56,15 @@ const es = {
     hint: "Pega un enlace público con subtítulos disponibles.",
     errorTitle: "No pudimos iniciar el análisis",
     defaultError: "No pudimos iniciar el análisis.",
+    errors: {
+      TRANSCRIPT_DISABLED:
+        "El video no tiene subtítulos disponibles. Prueba con otro video o graba una nota de voz.",
+      TRANSCRIPT_FETCH_EMPTY:
+        "No pudimos obtener los subtítulos del video en este momento. Vuelve a intentarlo en unos minutos.",
+      TRANSCRIPT_FETCH_FAILED:
+        "No pudimos obtener los subtítulos del video en este momento. Vuelve a intentarlo en unos minutos.",
+      VIDEO_UNAVAILABLE: "El video no está disponible (privado, eliminado o restringido).",
+    } as Record<string, string>,
     submit: "Analizar video",
     audio: {
       record: "Iniciar grabación",
@@ -228,6 +237,15 @@ const en: Dictionary = {
     hint: "Paste a public link with subtitles available.",
     errorTitle: "We couldn't start the analysis",
     defaultError: "We couldn't start the analysis.",
+    errors: {
+      TRANSCRIPT_DISABLED:
+        "This video has no subtitles available. Try another video or record a voice note.",
+      TRANSCRIPT_FETCH_EMPTY:
+        "We couldn't fetch this video's subtitles right now. Please try again in a few minutes.",
+      TRANSCRIPT_FETCH_FAILED:
+        "We couldn't fetch this video's subtitles right now. Please try again in a few minutes.",
+      VIDEO_UNAVAILABLE: "This video isn't available (private, deleted, or restricted).",
+    } as Record<string, string>,
     submit: "Analyze video",
     audio: {
       record: "Start recording",

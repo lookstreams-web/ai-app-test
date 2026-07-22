@@ -106,7 +106,13 @@ export async function fetchYoutubeTranscript(url: string): Promise<YoutubeTransc
   }
 
   if (!raw || raw.length === 0) {
-    throw new HttpError(422, 'TRANSCRIPT_DISABLED', 'El video no tiene subtítulos disponibles.');
+    // Lista vacía sin error explícito: casi siempre es YouTube bloqueando la IP
+    // del servidor (datacenter), no un video sin subtítulos. No culpamos al video.
+    throw new HttpError(
+      422,
+      'TRANSCRIPT_FETCH_EMPTY',
+      'No pudimos obtener los subtítulos del video en este momento. Vuelve a intentarlo en unos minutos.',
+    );
   }
 
   const div = transcriptTimeDivisor(raw);

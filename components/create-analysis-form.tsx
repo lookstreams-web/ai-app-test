@@ -22,6 +22,11 @@ export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"];
   const [pulseKey, setPulseKey] = useState(0);
   const recorder = useVoiceRecorder();
 
+  // Prioriza el mensaje traducido por código; si no lo conocemos, usa el del backend.
+  function localizedError(error?: { code?: string; message?: string }): string {
+    return (error?.code && dict.errors[error.code]) || error?.message || dict.defaultError;
+  }
+
   function goToAnalysis(id: string) {
     router.push(`/analysis/${id}?lang=${locale}`);
   }
@@ -38,7 +43,7 @@ export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"];
         body: JSON.stringify({ sourceType: "youtube", url, outputLanguage: locale })
       });
       const body = await response.json();
-      if (!response.ok || !body.id) throw new Error(body.error?.message ?? dict.defaultError);
+      if (!response.ok || !body.id) throw new Error(localizedError(body.error));
       goToAnalysis(body.id);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : dict.defaultError);
@@ -59,7 +64,7 @@ export function CreateAnalysisForm({ dict, locale }: { dict: Dictionary["form"];
       form.append("outputLanguage", locale);
       const response = await fetch("/api/analyses", { method: "POST", body: form });
       const body = await response.json();
-      if (!response.ok || !body.id) throw new Error(body.error?.message ?? dict.defaultError);
+      if (!response.ok || !body.id) throw new Error(localizedError(body.error));
       goToAnalysis(body.id);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : dict.defaultError);
