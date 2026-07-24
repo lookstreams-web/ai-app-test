@@ -1,6 +1,7 @@
 import { YoutubeTranscript } from 'youtube-transcript';
 import type { TranscriptSegment } from '@/lib/types';
 import { HttpError } from '@/lib/http';
+import { proxyEnabled, rotateProxySession, youtubeFetch } from '@/lib/youtube/proxy';
 
 /**
  * Integración con la librería de transcript de YouTube.
@@ -72,7 +73,8 @@ interface YoutubeMetadata {
 // Obtiene título y autor vía oEmbed (datos generados por el backend, no por el LLM).
 async function fetchMetadata(videoId: string): Promise<YoutubeMetadata> {
   try {
-    const res = await fetch(
+    const request = youtubeFetch() ?? fetch;
+    const res = await request(
       `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
       { signal: AbortSignal.timeout(5000) },
     );
@@ -88,12 +90,43 @@ async function fetchMetadata(videoId: string): Promise<YoutubeMetadata> {
   }
 }
 
+type RawTranscript = Array<{ text: string; offset: number; duration: number; lang?: string }>;
+
+/**
+ * Con proxy, una IP residencial puede tocarnos "mala" (YouTube le sirve el muro
+ * de consentimiento en vez de los subtítulos). Reintentamos una vez con otra IP
+ * antes de dar el video por perdido. Sin proxy no hay nada que rotar: un
+ * reintento pediría desde la misma IP y daría el mismo resultado.
+ */
+async function fetchRawTranscript(videoId: string): Promise<RawTranscript> {
+  const attempts = proxyEnabled() ? 2 : 1;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const proxied = youtubeFetch();
+      const raw = (await YoutubeTranscript.fetchTranscript(
+        videoId,
+        proxied ? { fetch: proxied } : undefined,
+      )) as RawTranscript;
+      if (raw?.length) return raw;
+      lastError = undefined;
+    } catch (err) {
+      lastError = err;
+    }
+    if (attempt < attempts) rotateProxySession();
+  }
+
+  if (lastError) throw lastError;
+  return [];
+}
+
 export async function fetchYoutubeTranscript(url: string): Promise<YoutubeTranscriptResult> {
   const videoId = parseYoutubeId(url);
 
   let raw: Array<{ text: string; offset: number; duration: number; lang?: string }>;
   try {
-    raw = (await YoutubeTranscript.fetchTranscript(videoId)) as typeof raw;
+    raw = await fetchRawTranscript(videoId);
   } catch (err) {
     const msg = err instanceof Error ? err.message.toLowerCase() : '';
     if (msg.includes('disabled') || msg.includes('transcript is disabled') || msg.includes('captions')) {
